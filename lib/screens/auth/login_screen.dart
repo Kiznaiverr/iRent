@@ -27,7 +27,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final success = await ref.read(authProvider.notifier).login(
+    final success = await ref
+        .read(authProvider.notifier)
+        .login(
           username: _usernameController.text.trim(),
           password: _passwordController.text,
         );
@@ -133,7 +135,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ],
                 ),
               ),
-              
+
               // Form Card
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
@@ -186,10 +188,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      const Color(0xFF6B9FE8)
-                                          .withValues(alpha: 0.15),
-                                      const Color(0xFF8AB4F8)
-                                          .withValues(alpha: 0.1),
+                                      const Color(
+                                        0xFF6B9FE8,
+                                      ).withValues(alpha: 0.15),
+                                      const Color(
+                                        0xFF8AB4F8,
+                                      ).withValues(alpha: 0.1),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(10),
@@ -246,10 +250,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      const Color(0xFF6B9FE8)
-                                          .withValues(alpha: 0.15),
-                                      const Color(0xFF8AB4F8)
-                                          .withValues(alpha: 0.1),
+                                      const Color(
+                                        0xFF6B9FE8,
+                                      ).withValues(alpha: 0.15),
+                                      const Color(
+                                        0xFF8AB4F8,
+                                      ).withValues(alpha: 0.1),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(10),
@@ -343,16 +349,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             height: 56,
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [
-                                  Color(0xFF6B9FE8),
-                                  Color(0xFF8AB4F8),
-                                ],
+                                colors: [Color(0xFF6B9FE8), Color(0xFF8AB4F8)],
                               ),
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF6B9FE8)
-                                      .withValues(alpha: 0.3),
+                                  color: const Color(
+                                    0xFF6B9FE8,
+                                  ).withValues(alpha: 0.3),
                                   blurRadius: 12,
                                   offset: const Offset(0, 6),
                                 ),
@@ -372,8 +376,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                             strokeWidth: 2.5,
                                             valueColor:
                                                 AlwaysStoppedAnimation<Color>(
-                                              Colors.white,
-                                            ),
+                                                  Colors.white,
+                                                ),
                                           ),
                                         )
                                       : const Text(
