@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'providers/auth_provider.dart';
@@ -20,24 +21,56 @@ class MyApp extends ConsumerWidget {
       title: 'iRent - iPhone Rental',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.light,
-        ),
+        colorScheme:
+            ColorScheme.fromSeed(
+              seedColor: const Color(0xFF6B9FE8), // Soft blue
+              brightness: Brightness.light,
+            ).copyWith(
+              primary: const Color(0xFF6B9FE8),
+              secondary: const Color(0xFF8AB4F8),
+              surface: const Color(0xFFF8F9FA),
+            ),
         useMaterial3: true,
-        appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
+        scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+        textTheme: GoogleFonts.manropeTextTheme(Theme.of(context).textTheme),
+        appBarTheme: AppBarTheme(
+          centerTitle: true,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          titleTextStyle: GoogleFonts.manrope(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
         inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
           filled: true,
-          fillColor: Colors.grey[100],
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
+          ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
             ),
+            elevation: 0,
           ),
+        ),
+        cardTheme: CardThemeData(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          color: Colors.white,
+          shadowColor: Colors.black.withValues(alpha: 0.05),
         ),
       ),
       initialRoute: '/',

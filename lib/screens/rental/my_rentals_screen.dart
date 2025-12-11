@@ -25,42 +25,97 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> {
     final rentalState = ref.watch(rentalProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Rental Saya')),
-      body: RefreshIndicator(
-        onRefresh: () => ref.read(rentalProvider.notifier).getUserRentals(),
-        child: rentalState.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : rentalState.rentals.isEmpty
-            ? Center(
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: CustomScrollView(
+        slivers: [
+          // Modern App Bar
+          SliverAppBar(
+            expandedHeight: 120,
+            pinned: true,
+            backgroundColor: Colors.white,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text(
+                'Rental Saya',
+                style: TextStyle(
+                  color: Color(0xFF1A1A1A),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      const Color(0xFF6B9FE8).withValues(alpha: 0.05),
+                      const Color(0xFF8AB4F8).withValues(alpha: 0.02),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Content
+          if (rentalState.isLoading)
+            const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (rentalState.rentals.isEmpty)
+            SliverFillRemaining(
+              child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.phone_iphone_outlined,
-                      size: 64,
-                      color: Colors.grey[400],
+                    Container(
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF6B9FE8).withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.devices_outlined,
+                        size: 80,
+                        color: const Color(0xFF6B9FE8).withValues(alpha: 0.5),
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
+                    const SizedBox(height: 24),
+                    const Text(
                       'Belum ada rental aktif',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1A1A1A),
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Rental iPhone Anda akan muncul di sini',
-                      style: TextStyle(color: Colors.grey[500], fontSize: 14),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
                     ),
                   ],
                 ),
-              )
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: rentalState.rentals.length,
-                itemBuilder: (context, index) {
-                  final rental = rentalState.rentals[index];
-                  return _buildRentalCard(rental);
-                },
               ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.all(20),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final rental = rentalState.rentals[index];
+                    return _buildRentalCard(rental);
+                  },
+                  childCount: rentalState.rentals.length,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -75,18 +130,16 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> {
     try {
       startDateTime = DateTime.parse(rental.startDate);
     } catch (e) {
-      // Fallback: try to parse with different format or use current date
       startDateTime = now;
     }
 
     try {
       endDateTime = DateTime.parse(rental.endDate);
     } catch (e) {
-      // Fallback: try to parse with different format or use current date + 1 day
       endDateTime = now.add(const Duration(days: 1));
     }
 
-    // Calculate days remaining using only date (not time)
+    // Calculate days remaining
     final nowDate = DateTime(now.year, now.month, now.day);
     final endDate = DateTime(
       endDateTime.year,
@@ -94,8 +147,6 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> {
       endDateTime.day,
     );
     final daysRemaining = endDate.difference(nowDate).inDays;
-
-    // Determine if rental is overdue based on date calculation
     final isOverdueByDate = daysRemaining < 0;
     final isActuallyOverdue =
         rental.isOverdue || (rental.isActive && isOverdueByDate);
@@ -104,133 +155,245 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> {
     IconData statusIcon;
 
     if (isActuallyOverdue) {
-      statusColor = Colors.red;
-      statusIcon = Icons.warning;
+      statusColor = const Color(0xFFF44336);
+      statusIcon = Icons.warning_rounded;
     } else if (rental.status == 'returned') {
-      statusColor = Colors.green;
-      statusIcon = Icons.done_all;
+      statusColor = const Color(0xFF4CAF50);
+      statusIcon = Icons.done_all_rounded;
     } else {
-      statusColor = Colors.blue;
-      statusIcon = Icons.phone_iphone;
+      statusColor = const Color(0xFF6B9FE8);
+      statusIcon = Icons.phone_iphone_rounded;
     }
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      child: InkWell(
-        onTap: () => _showRentalDetails(rental),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      rental.iphone?.name ?? 'iPhone',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showRentalDetails(rental),
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Icon Container
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            statusColor.withValues(alpha: 0.15),
+                            statusColor.withValues(alpha: 0.1),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(
+                        Icons.devices_rounded,
+                        color: statusColor,
+                        size: 28,
                       ),
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
+                    const SizedBox(width: 16),
+                    // Content
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            rental.iphone?.name ?? 'iPhone',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1A1A1A),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today_rounded,
+                                size: 12,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  '${dateFormat.format(startDateTime)} - ${dateFormat.format(endDateTime)}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
+                    // Status Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: statusColor.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(statusIcon, size: 14, color: statusColor),
+                          const SizedBox(width: 4),
+                          Text(
+                            rental.statusLabel,
+                            style: TextStyle(
+                              color: statusColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                // Days Remaining or Overdue Warning
+                if (rental.isActive && !isActuallyOverdue) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.1),
+                      color: daysRemaining <= 2
+                          ? Colors.orange[50]
+                          : const Color(0xFF6B9FE8).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: statusColor),
+                      border: Border.all(
+                        color: daysRemaining <= 2
+                            ? Colors.orange[200]!
+                            : const Color(0xFF6B9FE8).withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(statusIcon, size: 16, color: statusColor),
-                        const SizedBox(width: 4),
+                        Icon(
+                          daysRemaining <= 2
+                              ? Icons.warning_amber_rounded
+                              : Icons.access_time_rounded,
+                          size: 18,
+                          color: daysRemaining <= 2
+                              ? Colors.orange[700]
+                              : const Color(0xFF6B9FE8),
+                        ),
+                        const SizedBox(width: 8),
                         Text(
-                          rental.statusLabel,
+                          daysRemaining > 0
+                              ? 'Sisa $daysRemaining hari lagi'
+                              : 'Jatuh tempo hari ini',
                           style: TextStyle(
-                            color: statusColor,
+                            color: daysRemaining <= 2
+                                ? Colors.orange[900]
+                                : const Color(0xFF6B9FE8),
                             fontWeight: FontWeight.w600,
-                            fontSize: 12,
+                            fontSize: 13,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ],
-              ),
-              const Divider(height: 24),
-              Row(
-                children: [
-                  Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${dateFormat.format(startDateTime)} - ${dateFormat.format(endDateTime)}',
-                    style: TextStyle(color: Colors.grey[700], fontSize: 14),
+
+                // Penalty Warning
+                if (rental.penalty > 0) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.red[50]!,
+                          Colors.red[100]!,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.red[300]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline_rounded,
+                          size: 18,
+                          color: Colors.red[700],
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Denda: Rp ${NumberFormat('#,###').format(rental.penalty)}',
+                          style: TextStyle(
+                            color: Colors.red[900],
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
-              ),
-              if (rental.isActive && !isActuallyOverdue) ...[
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(
-                      daysRemaining > 0 ? Icons.access_time : Icons.warning,
-                      size: 16,
-                      color: daysRemaining > 0 ? Colors.blue : Colors.red,
+
+                // Overdue Warning
+                if (isActuallyOverdue && rental.isActive) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.red[300]!),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      daysRemaining > 0
-                          ? 'Sisa $daysRemaining hari'
-                          : 'Sudah melewati tenggat waktu',
-                      style: TextStyle(
-                        color: daysRemaining > 0 ? Colors.blue : Colors.red,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-              if (rental.penalty > 0) ...[
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.red[50],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        size: 16,
-                        color: Colors.red[700],
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Denda: Rp ${NumberFormat('#,###').format(rental.penalty)}',
-                        style: TextStyle(
-                          color: Colors.red[900],
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.warning_rounded,
+                          size: 18,
+                          color: Colors.red[700],
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Sudah melewati tenggat waktu!',
+                            style: TextStyle(
+                              color: Colors.red[900],
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -245,7 +408,6 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> {
       decimalDigits: 0,
     );
 
-    // Safe date parsing helper
     DateTime? safeParseDate(String? dateString) {
       if (dateString == null || dateString.isEmpty) return null;
       try {
@@ -262,146 +424,236 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.7,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          expand: false,
-          builder: (context, scrollController) {
-            return SingleChildScrollView(
-              controller: scrollController,
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(2),
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            minChildSize: 0.5,
+            maxChildSize: 0.95,
+            expand: false,
+            builder: (context, scrollController) {
+              return SingleChildScrollView(
+                controller: scrollController,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Detail Rental',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildDetailRow('iPhone', rental.iphone?.name ?? '-'),
-                  _buildDetailRow('Status', rental.statusLabel),
-                  _buildDetailRow(
-                    'Tanggal Mulai',
-                    startDate != null
-                        ? dateFormat.format(startDate)
-                        : rental.startDate,
-                  ),
-                  _buildDetailRow(
-                    'Tanggal Selesai',
-                    endDate != null
-                        ? dateFormat.format(endDate)
-                        : rental.endDate,
-                  ),
-                  if (returnDate != null)
-                    _buildDetailRow(
-                      'Tanggal Pengembalian',
-                      dateFormat.format(returnDate),
-                    ),
-                  if (rental.penalty > 0)
-                    _buildDetailRow(
-                      'Denda',
-                      formatter.format(rental.penalty),
-                      isWarning: true,
-                    ),
-                  const SizedBox(height: 24),
-                  if (rental.isOverdue)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Detail Rental',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1A1A),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.warning, color: Colors.red[700]),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Rental Anda telah melewati batas waktu. Segera kembalikan untuk menghindari denda tambahan.',
+                    ),
+                    const SizedBox(height: 24),
+                    _buildDetailRow(
+                      Icons.phone_iphone_rounded,
+                      'iPhone',
+                      rental.iphone?.name ?? '-',
+                    ),
+                    _buildDetailRow(
+                      Icons.info_outline_rounded,
+                      'Status',
+                      rental.statusLabel,
+                    ),
+                    _buildDetailRow(
+                      Icons.calendar_month_rounded,
+                      'Tanggal Mulai',
+                      startDate != null
+                          ? dateFormat.format(startDate)
+                          : rental.startDate,
+                    ),
+                    _buildDetailRow(
+                      Icons.event_rounded,
+                      'Tanggal Selesai',
+                      endDate != null
+                          ? dateFormat.format(endDate)
+                          : rental.endDate,
+                    ),
+                    if (returnDate != null)
+                      _buildDetailRow(
+                        Icons.event_available_rounded,
+                        'Tanggal Pengembalian',
+                        dateFormat.format(returnDate),
+                      ),
+                    if (rental.penalty > 0) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.red[50]!,
+                              Colors.red[100]!,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.red[300]!),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.error_outline_rounded,
+                                  color: Colors.red[700],
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Total Denda',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.red[900],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              formatter.format(rental.penalty),
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
                                 color: Colors.red[900],
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    )
-                  else if (rental.isActive)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.blue[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.blue),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.info_outline, color: Colors.blue[700]),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Pastikan mengembalikan iPhone dalam kondisi baik sesuai tenggat waktu.',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.blue[900],
+                    ],
+                    const SizedBox(height: 24),
+                    if (rental.isOverdue)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.red[50],
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.red[200]!),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.warning_rounded,
+                              color: Colors.red[700],
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Rental Anda telah melewati batas waktu. Segera kembalikan untuk menghindari denda tambahan.',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.red[900],
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
+                          ],
+                        ),
+                      )
+                    else if (rental.isActive)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF6B9FE8).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFF6B9FE8).withValues(
+                              alpha: 0.3,
+                            ),
                           ),
-                        ],
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.info_outline_rounded,
+                              color: Color(0xFF6B9FE8),
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Pastikan mengembalikan iPhone dalam kondisi baik sesuai tenggat waktu.',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[800],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                ],
-              ),
-            );
-          },
+                  ],
+                ),
+              );
+            },
+          ),
         );
       },
     );
   }
 
-  Widget _buildDetailRow(String label, String value, {bool isWarning = false}) {
+  Widget _buildDetailRow(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 20),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 140,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontWeight: isWarning ? FontWeight.bold : FontWeight.normal,
-              ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF6B9FE8).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              icon,
+              size: 20,
+              color: const Color(0xFF6B9FE8),
             ),
           ),
+          const SizedBox(width: 16),
           Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: isWarning ? Colors.red[900] : Colors.black,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1A1A1A),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
