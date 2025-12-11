@@ -1,3 +1,9 @@
+> [!IMPORTANT]
+> Project ini hanya untuk tugas kuliah dan bukan aplikasi sesungguhnya yang digunakan untuk bisnis komersial.
+> Semua fitur, data, dan fungsi dalam aplikasi hanyalah demonstrasi/simulasi untuk keperluan akademik.
+
+---
+
 # iRent - Aplikasi Penyewaan iPhone
 
 
