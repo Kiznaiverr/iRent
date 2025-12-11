@@ -14,6 +14,8 @@ class OrderModel {
   final UserModel? user;
   final String? userName;
   final String? userProfile;
+  final String? iphoneName;
+  final String? pricePerDay;
 
   OrderModel({
     required this.id,
@@ -28,6 +30,8 @@ class OrderModel {
     this.user,
     this.userName,
     this.userProfile,
+    this.iphoneName,
+    this.pricePerDay,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -47,6 +51,8 @@ class OrderModel {
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
       userName: json['user_name']?.toString(),
       userProfile: json['profile']?.toString(),
+      iphoneName: json['iphone_name']?.toString(),
+      pricePerDay: json['price_per_day']?.toString(),
     );
   }
 
@@ -64,6 +70,8 @@ class OrderModel {
       'user': user?.toJson(),
       'user_name': userName,
       'profile': userProfile,
+      'iphone_name': iphoneName,
+      'price_per_day': pricePerDay,
     };
   }
 
@@ -80,6 +88,8 @@ class OrderModel {
     UserModel? user,
     String? userName,
     String? userProfile,
+    String? iphoneName,
+    String? pricePerDay,
   }) {
     return OrderModel(
       id: id ?? this.id,
@@ -94,6 +104,8 @@ class OrderModel {
       user: user ?? this.user,
       userName: userName ?? this.userName,
       userProfile: userProfile ?? this.userProfile,
+      iphoneName: iphoneName ?? this.iphoneName,
+      pricePerDay: pricePerDay ?? this.pricePerDay,
     );
   }
 

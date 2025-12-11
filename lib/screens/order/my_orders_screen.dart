@@ -209,7 +209,7 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            order.iphone?.name ?? 'iPhone',
+                            order.iphoneName ?? order.iphone?.name ?? 'iPhone',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -378,7 +378,7 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen> {
                     _buildDetailRow(
                       Icons.phone_iphone_rounded,
                       'iPhone',
-                      order.iphone?.name ?? '-',
+                      order.iphoneName ?? order.iphone?.name ?? '-',
                     ),
                     _buildDetailRow(
                       Icons.confirmation_number_outlined,
