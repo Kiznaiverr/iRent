@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../providers/admin_provider.dart';
 import '../../models/rental_model.dart';
+import '../../models/overdue_model.dart';
 
 class ManageRentalsScreen extends ConsumerStatefulWidget {
   const ManageRentalsScreen({super.key});
@@ -65,7 +66,7 @@ class _ManageRentalsScreenState extends ConsumerState<ManageRentalsScreen>
                 controller: _tabController,
                 children: [
                   _buildRentalList(activeRentals, isActive: true),
-                  _buildRentalList(overdueRentals, isOverdue: true),
+                  _buildOverdueList(overdueRentals),
                   _buildRentalList(returnedRentals),
                 ],
               ),
@@ -189,6 +190,197 @@ class _ManageRentalsScreenState extends ConsumerState<ManageRentalsScreen>
               ],
             ],
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildOverdueList(List<OverdueModel> overdues) {
+    if (overdues.isEmpty) {
+      return const Center(child: Text('Tidak ada rental terlambat'));
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: overdues.length,
+      itemBuilder: (context, index) {
+        final overdue = overdues[index];
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: Column(
+            children: [
+              ListTile(
+                leading:
+                    overdue.userProfile != null &&
+                        overdue.userProfile!.isNotEmpty
+                    ? CircleAvatar(
+                        backgroundImage: NetworkImage(overdue.userProfile!),
+                      )
+                    : CircleAvatar(
+                        backgroundColor: const Color(0xFFFFCDD2),
+                        child: Text(
+                          overdue.userName.isNotEmpty
+                              ? overdue.userName[0].toUpperCase()
+                              : 'U',
+                          style: const TextStyle(color: Color(0xFFC62828)),
+                        ),
+                      ),
+                title: Text(
+                  overdue.userName,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('iPhone: ${overdue.iphoneName}'),
+                    Text('Order: ${overdue.orderCode}'),
+                    Text(
+                      'Terlambat: ${overdue.daysOverdue} hari',
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Denda: Rp ${overdue.totalPenalty}',
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text('Phone: ${overdue.userPhone}'),
+                    Text('Email: ${overdue.userEmail}'),
+                  ],
+                ),
+                trailing: const Chip(
+                  label: Text('Terlambat', style: TextStyle(fontSize: 12)),
+                  backgroundColor: Color(0xFFFFEBEE),
+                ),
+              ),
+              const Divider(height: 1),
+              OverflowBar(
+                children: [
+                  TextButton.icon(
+                    onPressed: () => _showOverdueDetailsDialog(overdue),
+                    icon: const Icon(Icons.info, size: 20),
+                    label: const Text('Detail'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showOverdueDetailsDialog(OverdueModel overdue) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Detail Overdue Rental'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    overdue.userProfile != null &&
+                            overdue.userProfile!.isNotEmpty
+                        ? CircleAvatar(
+                            radius: 30,
+                            backgroundImage: NetworkImage(overdue.userProfile!),
+                          )
+                        : CircleAvatar(
+                            radius: 30,
+                            backgroundColor: Colors.red[100],
+                            child: Text(
+                              overdue.userName.isNotEmpty
+                                  ? overdue.userName[0].toUpperCase()
+                                  : 'U',
+                              style: const TextStyle(
+                                color: Color(0xFFC62828),
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            overdue.userName,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(overdue.userEmail),
+                          Text(overdue.userPhone),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const Divider(),
+                _buildDetailRow('iPhone', overdue.iphoneName),
+                _buildDetailRow('Order Code', overdue.orderCode),
+                _buildDetailRow('Order Total', 'Rp ${overdue.orderTotal}'),
+                const Divider(),
+                _buildDetailRow(
+                  'Rental Start',
+                  DateFormat(
+                    'dd MMM yyyy',
+                  ).format(DateTime.parse(overdue.rentalStartDate)),
+                ),
+                _buildDetailRow(
+                  'Rental End',
+                  DateFormat(
+                    'dd MMM yyyy',
+                  ).format(DateTime.parse(overdue.rentalEndDate)),
+                ),
+                _buildDetailRow(
+                  'Original End Date',
+                  DateFormat(
+                    'dd MMM yyyy',
+                  ).format(DateTime.parse(overdue.originalEndDate)),
+                ),
+                if (overdue.actualReturnDate != null)
+                  _buildDetailRow(
+                    'Actual Return',
+                    DateFormat(
+                      'dd MMM yyyy',
+                    ).format(DateTime.parse(overdue.actualReturnDate!)),
+                  ),
+                const Divider(),
+                _buildDetailRow(
+                  'Days Overdue',
+                  overdue.daysOverdue.toString(),
+                  isBold: true,
+                ),
+                _buildDetailRow(
+                  'Penalty per Day',
+                  'Rp ${overdue.penaltyPerDay}',
+                  isBold: true,
+                ),
+                _buildDetailRow(
+                  'Total Penalty',
+                  'Rp ${overdue.totalPenalty}',
+                  isBold: true,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Tutup'),
+            ),
+          ],
         );
       },
     );

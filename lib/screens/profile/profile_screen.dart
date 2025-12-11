@@ -55,25 +55,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               // Profile Photo
               Stack(
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 3,
+                  GestureDetector(
+                    onTap: user.profile != null
+                        ? () => _showProfilePhotoDialog(context, user.profile!)
+                        : null,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 3,
+                        ),
                       ),
-                    ),
-                    child: CircleAvatar(
-                      radius: 60,
-                      backgroundImage: user.profile != null
-                          ? CachedNetworkImageProvider(user.profile!)
-                          : null,
-                      child: user.profile == null
-                          ? Text(
-                              user.name[0].toUpperCase(),
-                              style: const TextStyle(fontSize: 40),
-                            )
-                          : null,
+                      child: CircleAvatar(
+                        radius: 60,
+                        backgroundImage: user.profile != null
+                            ? CachedNetworkImageProvider(user.profile!)
+                            : null,
+                        child: user.profile == null
+                            ? Text(
+                                user.name[0].toUpperCase(),
+                                style: const TextStyle(fontSize: 40),
+                              )
+                            : null,
+                      ),
                     ),
                   ),
                   Positioned(
@@ -311,6 +316,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   final picker = ImagePicker();
                   final image = await picker.pickImage(
                     source: ImageSource.camera,
+                    imageQuality: 80, // Compress quality
+                    maxWidth: 1024, // Max resolution
+                    maxHeight: 1024,
                   );
                   if (image != null) {
                     await ref
@@ -327,6 +335,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   final picker = ImagePicker();
                   final image = await picker.pickImage(
                     source: ImageSource.gallery,
+                    imageQuality: 80, // Compress quality
+                    maxWidth: 1024, // Max resolution
+                    maxHeight: 1024,
                   );
                   if (image != null) {
                     await ref
@@ -383,6 +394,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: const Text('Verifikasi'),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void _showProfilePhotoDialog(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                  image: CachedNetworkImageProvider(imageUrl),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ),
         );
       },
     );

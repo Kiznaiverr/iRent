@@ -5,6 +5,7 @@ import '../models/user_model.dart';
 import '../models/iphone_model.dart';
 import '../models/order_model.dart';
 import '../models/rental_model.dart';
+import '../models/overdue_model.dart';
 import '../services/api_service.dart';
 import 'auth_provider.dart';
 
@@ -15,7 +16,7 @@ class AdminState {
   final List<IPhoneModel> iphones;
   final List<OrderModel> orders;
   final List<RentalModel> rentals;
-  final List<RentalModel> overdueRentals;
+  final List<OverdueModel> overdueRentals;
   final String? error;
 
   AdminState({
@@ -34,7 +35,7 @@ class AdminState {
     List<IPhoneModel>? iphones,
     List<OrderModel>? orders,
     List<RentalModel>? rentals,
-    List<RentalModel>? overdueRentals,
+    List<OverdueModel>? overdueRentals,
     String? error,
   }) {
     return AdminState(
@@ -150,7 +151,7 @@ class AdminNotifier extends StateNotifier<AdminState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final response = await _apiService.get(
-        status != null ? ApiConfig.adminAllIphones : ApiConfig.adminIphones,
+        ApiConfig.adminAllIphones,
         queryParameters: status != null ? {'status': status} : null,
       );
       if (response.statusCode == 200) {
@@ -347,8 +348,13 @@ class AdminNotifier extends StateNotifier<AdminState> {
       final response = await _apiService.get(ApiConfig.adminOverdueRentals);
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data['data'] ?? response.data;
-        final rentals = data.map((e) => RentalModel.fromJson(e)).toList();
-        state = state.copyWith(isLoading: false, overdueRentals: rentals);
+        final overdueRentals = data
+            .map((e) => OverdueModel.fromJson(e))
+            .toList();
+        state = state.copyWith(
+          isLoading: false,
+          overdueRentals: overdueRentals,
+        );
       }
     } catch (e) {
       final error = _apiService.handleError(e);

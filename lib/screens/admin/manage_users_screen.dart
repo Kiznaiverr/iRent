@@ -63,15 +63,19 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
                   return Card(
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: user.isActive
-                            ? Colors.green
-                            : Colors.grey,
-                        child: Text(
-                          user.name[0].toUpperCase(),
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ),
+                      leading: user.profile != null && user.profile!.isNotEmpty
+                          ? CircleAvatar(
+                              backgroundImage: NetworkImage(user.profile!),
+                            )
+                          : CircleAvatar(
+                              backgroundColor: user.isActive
+                                  ? Colors.green
+                                  : Colors.grey,
+                              child: Text(
+                                user.name[0].toUpperCase(),
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
                       title: Text(user.name),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

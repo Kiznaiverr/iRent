@@ -5,6 +5,7 @@ class TestimonialModel {
   final int rating;
   final String createdAt;
   final String userName;
+  final String? profile;
 
   TestimonialModel({
     required this.id,
@@ -13,6 +14,7 @@ class TestimonialModel {
     required this.rating,
     required this.createdAt,
     required this.userName,
+    this.profile,
   });
 
   factory TestimonialModel.fromJson(Map<String, dynamic> json) {
@@ -33,6 +35,7 @@ class TestimonialModel {
           : int.tryParse(json['rating'].toString()) ?? 5,
       createdAt: (json['created_at'] ?? '').toString(),
       userName: name,
+      profile: json['profile']?.toString(),
     );
   }
 
@@ -44,6 +47,7 @@ class TestimonialModel {
       'rating': rating,
       'created_at': createdAt,
       'user_name': userName,
+      'profile': profile,
     };
   }
 
@@ -54,6 +58,7 @@ class TestimonialModel {
     int? rating,
     String? createdAt,
     String? userName,
+    String? profile,
   }) {
     return TestimonialModel(
       id: id ?? this.id,
@@ -62,6 +67,7 @@ class TestimonialModel {
       rating: rating ?? this.rating,
       createdAt: createdAt ?? this.createdAt,
       userName: userName ?? this.userName,
+      profile: profile ?? this.profile,
     );
   }
 }

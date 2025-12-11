@@ -39,7 +39,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final ApiService _apiService;
   final StorageService _storageService;
 
-  AuthNotifier(this._apiService, this._storageService) : super(AuthState()) {
+  AuthNotifier(this._apiService, this._storageService)
+    : super(AuthState(isLoading: true)) {
     checkAuth();
   }
 
@@ -47,8 +48,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> checkAuth() async {
     try {
       final isLoggedIn = await _storageService.isLoggedIn();
+
       if (isLoggedIn) {
-        await getProfile();
+        state = state.copyWith(isAuthenticated: true, isLoading: false);
+
+        getProfile().catchError((_) {});
+      } else {
+        state = state.copyWith(isLoading: false);
       }
     } catch (e) {
       await _storageService.clearAll();
@@ -156,11 +162,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final response = await _apiService.get(ApiConfig.userProfile);
       if (response.statusCode == 200) {
         final user = UserModel.fromJson(response.data['data'] ?? response.data);
-        state = state.copyWith(isAuthenticated: true, user: user);
+        state = state.copyWith(user: user);
       }
     } catch (e) {
-      await _storageService.clearAll();
-      state = AuthState();
+      // Don't clear auth state on profile fetch failure
+      // User stays logged in even if profile can't be fetched
     }
   }
 
@@ -175,7 +181,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final response = await _apiService.put(
-        ApiConfig.userProfile,
+        ApiConfig.userUpdateProfile,
         data: {
           if (name != null) 'name': name,
           if (username != null) 'username': username,

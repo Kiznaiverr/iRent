@@ -275,7 +275,15 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     MaterialPageRoute(
                       builder: (_) => OrderFormScreen(iphone: iphone),
                     ),
-                  );
+                  ).then((result) {
+                    // Jika result adalah 'orders', berarti order berhasil dibuat
+                    if (result == 'orders' && mounted) {
+                      // Navigate ke home screen dengan tab orders
+                      Navigator.of(
+                        context,
+                      ).pushReplacementNamed('/home', arguments: {'tab': 1});
+                    }
+                  });
                 }
               : null,
           style: ElevatedButton.styleFrom(
@@ -294,7 +302,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
   @override
   void dispose() {
-    ref.read(iphoneProvider.notifier).clearSelected();
+    // ref.read(iphoneProvider.notifier).clearSelected(); // Removed to prevent dispose error
     super.dispose();
   }
 }

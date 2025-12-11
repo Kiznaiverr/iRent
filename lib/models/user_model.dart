@@ -35,7 +35,7 @@ class UserModel {
       nik: json['nik'] ?? '',
       role: json['role'] ?? 'user',
       status: json['status'] ?? 'active',
-      penalty: (json['penalty'] ?? 0).toDouble(),
+      penalty: double.tryParse(json['penalty']?.toString() ?? '0') ?? 0.0,
       profile: json['profile'],
       phoneVerified: json['phone_verified'],
     );

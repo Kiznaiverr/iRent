@@ -57,17 +57,27 @@ class _TestimonialsScreenState extends ConsumerState<TestimonialsScreen> {
                         children: [
                           Row(
                             children: [
-                              CircleAvatar(
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.primary,
-                                child: Text(
-                                  testimonial.userName.isNotEmpty
-                                      ? testimonial.userName[0].toUpperCase()
-                                      : 'U',
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                              ),
+                              testimonial.profile != null &&
+                                      testimonial.profile!.isNotEmpty
+                                  ? CircleAvatar(
+                                      backgroundImage: NetworkImage(
+                                        testimonial.profile!,
+                                      ),
+                                    )
+                                  : CircleAvatar(
+                                      backgroundColor: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                      child: Text(
+                                        testimonial.userName.isNotEmpty
+                                            ? testimonial.userName[0]
+                                                  .toUpperCase()
+                                            : 'U',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(

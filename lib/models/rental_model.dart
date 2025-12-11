@@ -12,6 +12,8 @@ class RentalModel {
   final double penalty;
   final IPhoneModel? iphone;
   final UserModel? user;
+  final String? userName;
+  final String? userProfile;
 
   RentalModel({
     required this.id,
@@ -24,22 +26,45 @@ class RentalModel {
     required this.penalty,
     this.iphone,
     this.user,
+    this.userName,
+    this.userProfile,
   });
 
   factory RentalModel.fromJson(Map<String, dynamic> json) {
+    // Handle different field names from API
+    final startDate = json['rental_start_date'] ?? json['start_date'] ?? '';
+    final endDate = json['rental_end_date'] ?? json['end_date'] ?? '';
+    final returnDate = json['actual_return_date'] ?? json['return_date'];
+
+    // Create iPhone object from iphone_name if available
+    IPhoneModel? iphone;
+    if (json['iphone_name'] != null) {
+      iphone = IPhoneModel(
+        id: json['iphone_id'] ?? 0,
+        name: json['iphone_name'],
+        pricePerDay: 0, // Default value since not provided
+        specs: '',
+        images: [], // Empty list for images
+        stock: 0,
+        status: 'active',
+      );
+    } else if (json['iphone'] != null) {
+      iphone = IPhoneModel.fromJson(json['iphone']);
+    }
+
     return RentalModel(
       id: json['id'] ?? 0,
       userId: json['user_id'] ?? 0,
       iphoneId: json['iphone_id'] ?? 0,
-      startDate: json['start_date'] ?? '',
-      endDate: json['end_date'] ?? '',
-      returnDate: json['return_date'],
+      startDate: startDate,
+      endDate: endDate,
+      returnDate: returnDate,
       status: json['status'] ?? 'active',
-      penalty: (json['penalty'] ?? 0).toDouble(),
-      iphone: json['iphone'] != null
-          ? IPhoneModel.fromJson(json['iphone'])
-          : null,
+      penalty: double.tryParse(json['penalty']?.toString() ?? '0') ?? 0.0,
+      iphone: iphone,
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
+      userName: json['user_name']?.toString(),
+      userProfile: json['profile']?.toString(),
     );
   }
 
@@ -55,6 +80,8 @@ class RentalModel {
       'penalty': penalty,
       'iphone': iphone?.toJson(),
       'user': user?.toJson(),
+      'user_name': userName,
+      'profile': userProfile,
     };
   }
 
@@ -69,6 +96,8 @@ class RentalModel {
     double? penalty,
     IPhoneModel? iphone,
     UserModel? user,
+    String? userName,
+    String? userProfile,
   }) {
     return RentalModel(
       id: id ?? this.id,
@@ -81,6 +110,8 @@ class RentalModel {
       penalty: penalty ?? this.penalty,
       iphone: iphone ?? this.iphone,
       user: user ?? this.user,
+      userName: userName ?? this.userName,
+      userProfile: userProfile ?? this.userProfile,
     );
   }
 

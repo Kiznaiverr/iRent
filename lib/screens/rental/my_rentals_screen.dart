@@ -68,13 +68,42 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> {
   Widget _buildRentalCard(RentalModel rental) {
     final dateFormat = DateFormat('dd MMM yyyy', 'id_ID');
     final now = DateTime.now();
-    final endDate = DateTime.parse(rental.endDate);
-    final daysRemaining = endDate.difference(now).inDays;
+
+    DateTime? startDateTime;
+    DateTime? endDateTime;
+
+    try {
+      startDateTime = DateTime.parse(rental.startDate);
+    } catch (e) {
+      // Fallback: try to parse with different format or use current date
+      startDateTime = now;
+    }
+
+    try {
+      endDateTime = DateTime.parse(rental.endDate);
+    } catch (e) {
+      // Fallback: try to parse with different format or use current date + 1 day
+      endDateTime = now.add(const Duration(days: 1));
+    }
+
+    // Calculate days remaining using only date (not time)
+    final nowDate = DateTime(now.year, now.month, now.day);
+    final endDate = DateTime(
+      endDateTime.year,
+      endDateTime.month,
+      endDateTime.day,
+    );
+    final daysRemaining = endDate.difference(nowDate).inDays;
+
+    // Determine if rental is overdue based on date calculation
+    final isOverdueByDate = daysRemaining < 0;
+    final isActuallyOverdue =
+        rental.isOverdue || (rental.isActive && isOverdueByDate);
 
     Color statusColor;
     IconData statusIcon;
 
-    if (rental.isOverdue) {
+    if (isActuallyOverdue) {
       statusColor = Colors.red;
       statusIcon = Icons.warning;
     } else if (rental.status == 'returned') {
@@ -140,12 +169,12 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> {
                   Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
                   const SizedBox(width: 8),
                   Text(
-                    '${dateFormat.format(DateTime.parse(rental.startDate))} - ${dateFormat.format(endDate)}',
+                    '${dateFormat.format(startDateTime)} - ${dateFormat.format(endDateTime)}',
                     style: TextStyle(color: Colors.grey[700], fontSize: 14),
                   ),
                 ],
               ),
-              if (rental.isActive) ...[
+              if (rental.isActive && !isActuallyOverdue) ...[
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -216,6 +245,20 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> {
       decimalDigits: 0,
     );
 
+    // Safe date parsing helper
+    DateTime? safeParseDate(String? dateString) {
+      if (dateString == null || dateString.isEmpty) return null;
+      try {
+        return DateTime.parse(dateString);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    final startDate = safeParseDate(rental.startDate);
+    final endDate = safeParseDate(rental.endDate);
+    final returnDate = safeParseDate(rental.returnDate);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -257,16 +300,20 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> {
                   _buildDetailRow('Status', rental.statusLabel),
                   _buildDetailRow(
                     'Tanggal Mulai',
-                    dateFormat.format(DateTime.parse(rental.startDate)),
+                    startDate != null
+                        ? dateFormat.format(startDate)
+                        : rental.startDate,
                   ),
                   _buildDetailRow(
                     'Tanggal Selesai',
-                    dateFormat.format(DateTime.parse(rental.endDate)),
+                    endDate != null
+                        ? dateFormat.format(endDate)
+                        : rental.endDate,
                   ),
-                  if (rental.returnDate != null)
+                  if (returnDate != null)
                     _buildDetailRow(
                       'Tanggal Pengembalian',
-                      dateFormat.format(DateTime.parse(rental.returnDate!)),
+                      dateFormat.format(returnDate),
                     ),
                   if (rental.penalty > 0)
                     _buildDetailRow(

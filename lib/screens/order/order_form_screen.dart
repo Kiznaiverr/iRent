@@ -87,8 +87,13 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
         );
 
     if (success && mounted) {
-      Navigator.of(context).pop();
-      Navigator.of(context).pop(); // Also pop product detail
+      // Tunggu sebentar agar toast terlihat sebelum redirect
+      await Future.delayed(const Duration(seconds: 1));
+      if (mounted) {
+        Navigator.of(context).pop(
+          'orders',
+        ); // Return 'orders' to indicate success and navigate to orders tab
+      }
     }
   }
 

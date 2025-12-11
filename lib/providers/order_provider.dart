@@ -57,14 +57,21 @@ class OrderNotifier extends StateNotifier<OrderState> {
         },
       );
 
-      if (response.statusCode == 201) {
-        state = state.copyWith(isLoading: false);
-        Fluttertoast.showToast(
-          msg: response.data['message'] ?? 'Order berhasil dibuat',
-        );
-        return true;
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final responseData = response.data;
+        if (responseData != null && responseData['success'] == true) {
+          state = state.copyWith(isLoading: false);
+          Fluttertoast.showToast(
+            msg: responseData['message'] ?? 'Order berhasil dibuat',
+          );
+          return true;
+        }
       }
+
+      // Handle non-success responses
       state = state.copyWith(isLoading: false);
+      final errorMessage = response.data?['message'] ?? 'Gagal membuat order';
+      Fluttertoast.showToast(msg: errorMessage);
       return false;
     } catch (e) {
       final error = _apiService.handleError(e);

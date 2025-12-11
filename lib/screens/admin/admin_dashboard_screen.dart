@@ -18,7 +18,8 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _loadData();
+    // Load data setelah frame pertama
+    Future.microtask(() => _loadData());
   }
 
   Future<void> _loadData() async {
@@ -41,6 +42,25 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         onRefresh: _loadData,
         child: adminState.isLoading
             ? const Center(child: CircularProgressIndicator())
+            : adminState.error != null
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error, size: 64, color: Colors.red),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Error: ${adminState.error}',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _loadData,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              )
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -88,43 +108,126 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                               .toString(),
                           color: Colors.purple,
                         ),
+                        _buildStatCard(
+                          icon: Icons.warning,
+                          title: 'Overdue Rentals',
+                          value: adminState.overdueRentals.length.toString(),
+                          color: Colors.red,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 24),
                     if (adminState.overdueRentals.isNotEmpty) ...[
-                      Card(
-                        color: Colors.red[50],
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.warning_amber_rounded,
-                                color: Colors.red,
-                                size: 32,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Perhatian!',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    Text(
-                                      '${adminState.overdueRentals.length} rental terlambat',
-                                      style: const TextStyle(fontSize: 14),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                      const Text(
+                        'Overdue Rentals Details',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
+                      ),
+                      const SizedBox(height: 16),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: adminState.overdueRentals.length,
+                        itemBuilder: (context, index) {
+                          final overdue = adminState.overdueRentals[index];
+                          return Card(
+                            color: Colors.red[50],
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      overdue.userProfile != null &&
+                                              overdue.userProfile!.isNotEmpty
+                                          ? CircleAvatar(
+                                              radius: 20,
+                                              backgroundImage: NetworkImage(
+                                                overdue.userProfile!,
+                                              ),
+                                            )
+                                          : CircleAvatar(
+                                              radius: 20,
+                                              backgroundColor: const Color(
+                                                0xFFFFCDD2,
+                                              ),
+                                              child: Text(
+                                                overdue.userName.isNotEmpty
+                                                    ? overdue.userName[0]
+                                                          .toUpperCase()
+                                                    : 'U',
+                                                style: const TextStyle(
+                                                  color: Color(0xFFC62828),
+                                                ),
+                                              ),
+                                            ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Order: ${overdue.orderCode}',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            Text(
+                                              overdue.userName,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text('iPhone: ${overdue.iphoneName}'),
+                                  Text('Phone: ${overdue.userPhone}'),
+                                  Text('Email: ${overdue.userEmail}'),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          'Days Overdue: ${overdue.daysOverdue}',
+                                          style: const TextStyle(
+                                            color: Colors.red,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      Text(
+                                        'Penalty: Rp ${overdue.totalPenalty}',
+                                        style: const TextStyle(
+                                          color: Colors.red,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Original End: ${_formatDate(overdue.originalEndDate)}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 24),
                     ],
@@ -246,5 +349,14 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         onTap: onTap,
       ),
     );
+  }
+
+  String _formatDate(String dateString) {
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.day}/${date.month}/${date.year}';
+    } catch (e) {
+      return dateString;
+    }
   }
 }

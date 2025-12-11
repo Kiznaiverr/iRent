@@ -12,6 +12,8 @@ class OrderModel {
   final String orderCode;
   final IPhoneModel? iphone;
   final UserModel? user;
+  final String? userName;
+  final String? userProfile;
 
   OrderModel({
     required this.id,
@@ -24,6 +26,8 @@ class OrderModel {
     required this.orderCode,
     this.iphone,
     this.user,
+    this.userName,
+    this.userProfile,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -33,13 +37,16 @@ class OrderModel {
       iphoneId: json['iphone_id'] ?? 0,
       startDate: json['start_date'] ?? '',
       endDate: json['end_date'] ?? '',
-      totalPrice: (json['total_price'] ?? 0).toDouble(),
+      totalPrice:
+          double.tryParse(json['total_price']?.toString() ?? '0') ?? 0.0,
       status: json['status'] ?? 'pre_ordered',
       orderCode: json['order_code'] ?? '',
       iphone: json['iphone'] != null
           ? IPhoneModel.fromJson(json['iphone'])
           : null,
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
+      userName: json['user_name']?.toString(),
+      userProfile: json['profile']?.toString(),
     );
   }
 
@@ -55,6 +62,8 @@ class OrderModel {
       'order_code': orderCode,
       'iphone': iphone?.toJson(),
       'user': user?.toJson(),
+      'user_name': userName,
+      'profile': userProfile,
     };
   }
 
@@ -69,6 +78,8 @@ class OrderModel {
     String? orderCode,
     IPhoneModel? iphone,
     UserModel? user,
+    String? userName,
+    String? userProfile,
   }) {
     return OrderModel(
       id: id ?? this.id,
@@ -81,6 +92,8 @@ class OrderModel {
       orderCode: orderCode ?? this.orderCode,
       iphone: iphone ?? this.iphone,
       user: user ?? this.user,
+      userName: userName ?? this.userName,
+      userProfile: userProfile ?? this.userProfile,
     );
   }
 

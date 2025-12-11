@@ -11,22 +11,25 @@ import '../rental/my_rentals_screen.dart';
 import '../profile/profile_screen.dart';
 import '../testimonial/testimonials_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
-import '../auth/login_screen.dart';
+import '../../models/user_model.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
-  const HomeScreen({super.key});
+  final int initialTab;
+
+  const HomeScreen({super.key, this.initialTab = 0});
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  int _currentIndex = 0;
+  late int _currentIndex;
   final _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialTab;
     Future.microtask(() {
       ref.read(iphoneProvider.notifier).getActiveIPhones();
     });
@@ -43,8 +46,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final authState = ref.watch(authProvider);
     final user = authState.user;
 
+    // If not authenticated, redirect to login
+    if (!authState.isAuthenticated) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed('/login');
+        }
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    // If user profile is still loading, show loading indicator
     if (user == null) {
-      return const LoginScreen();
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -63,12 +77,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 );
               },
             ),
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              // TODO: Notifications
-            },
-          ),
         ],
       ),
       drawer: _buildDrawer(context, user),
@@ -93,7 +101,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildDrawer(BuildContext context, user) {
+  Widget _buildDrawer(BuildContext context, UserModel user) {
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -152,10 +160,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onTap: () async {
               await ref.read(authProvider.notifier).logout();
               if (context.mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (route) => false,
-                );
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil('/login', (route) => false);
               }
             },
           ),

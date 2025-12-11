@@ -12,6 +12,7 @@ class ApiConfig {
 
   // User endpoints
   static const String userProfile = '/api/user/profile';
+  static const String userUpdateProfile = '/api/user/update';
   static const String uploadProfilePhoto = '/api/user/upload-profile-photo';
 
   // iPhone endpoints
