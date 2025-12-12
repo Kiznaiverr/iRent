@@ -41,6 +41,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _currentIndex = widget.initialTab;
     Future.microtask(() {
       ref.read(iphoneProvider.notifier).getActiveIPhones();
+      // Load profile saat home screen dibuka
+      ref.read(authProvider.notifier).getProfile();
     });
   }
 

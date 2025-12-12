@@ -50,9 +50,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final isLoggedIn = await _storageService.isLoggedIn();
 
       if (isLoggedIn) {
+        // Set authenticated first
         state = state.copyWith(isAuthenticated: true, isLoading: false);
 
-        getProfile().catchError((_) {});
+        // Then load profile
+        await getProfile();
       } else {
         state = state.copyWith(isLoading: false);
       }
