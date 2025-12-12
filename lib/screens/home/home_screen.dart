@@ -556,7 +556,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Hai, ${user?.name.split(' ').first ?? 'User'}! 👋',
+                        'Haloo, ${user?.name.split(' ').first ?? 'User'}!',
                         style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w700,
@@ -566,7 +566,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Temukan iPhone impianmu',
+                        'Sewa iPhone Premium dengan Harga Terjangkau',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w400,
