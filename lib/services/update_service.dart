@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:version/version.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:flutter/foundation.dart';
 
 class UpdateService {
   static const String _githubApiUrl =
@@ -10,23 +11,34 @@ class UpdateService {
   /// Get current app version
   static Future<String> getCurrentVersion() async {
     final packageInfo = await PackageInfo.fromPlatform();
-    return packageInfo.version;
+    final version = packageInfo.version;
+    debugPrint('Current app version: $version');
+    return version;
   }
 
   /// Fetch latest version from GitHub releases
   static Future<String?> getLatestVersion() async {
     try {
+      debugPrint('Checking for latest version from GitHub...');
       final response = await http.get(Uri.parse(_githubApiUrl));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final tagName = data['tag_name'] as String?;
         if (tagName != null) {
           // Remove 'v' prefix if present and handle beta versions
-          return tagName.startsWith('v') ? tagName.substring(1) : tagName;
+          final cleanVersion = tagName.startsWith('v')
+              ? tagName.substring(1)
+              : tagName;
+          debugPrint('Latest version from GitHub: $cleanVersion');
+          return cleanVersion;
         }
+      } else {
+        debugPrint(
+          'Failed to fetch latest version. Status: ${response.statusCode}',
+        );
       }
     } catch (e) {
-      // Error fetching latest version
+      debugPrint('Error fetching latest version: $e');
     }
     return null;
   }
@@ -36,12 +48,20 @@ class UpdateService {
     final currentVersion = await getCurrentVersion();
     final latestVersion = await getLatestVersion();
 
-    if (latestVersion == null) return false;
+    if (latestVersion == null) {
+      debugPrint('Could not determine latest version');
+      return false;
+    }
 
     try {
-      return Version.parse(latestVersion) > Version.parse(currentVersion);
+      final isUpdate =
+          Version.parse(latestVersion) > Version.parse(currentVersion);
+      debugPrint(
+        'Update available: $isUpdate (Current: $currentVersion, Latest: $latestVersion)',
+      );
+      return isUpdate;
     } catch (e) {
-      // Error comparing versions
+      debugPrint('Error comparing versions: $e');
       return false;
     }
   }
@@ -49,6 +69,7 @@ class UpdateService {
   /// Get download URL for APK
   static Future<String?> getDownloadUrl(String version) async {
     try {
+      debugPrint('Getting download URL for version: $version');
       final response = await http.get(Uri.parse(_githubApiUrl));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -57,14 +78,20 @@ class UpdateService {
           for (var asset in assets) {
             final name = asset['name'] as String?;
             if (name != null && name.endsWith('.apk')) {
-              return asset['browser_download_url'] as String?;
+              final url = asset['browser_download_url'] as String?;
+              debugPrint('Download URL found: $url');
+              return url;
             }
           }
         }
+        debugPrint('No APK asset found in release');
+      } else {
+        debugPrint(
+          'Failed to get release info. Status: ${response.statusCode}',
+        );
       }
     } catch (e) {
-      // Error getting download URL
-      return null;
+      debugPrint('Error getting download URL: $e');
     }
     return null;
   }
@@ -72,14 +99,24 @@ class UpdateService {
   /// Get release notes
   static Future<String?> getReleaseNotes() async {
     try {
+      debugPrint('Getting release notes...');
       final response = await http.get(Uri.parse(_githubApiUrl));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['body'] as String?;
+        final notes = data['body'] as String?;
+        if (notes != null && notes.isNotEmpty) {
+          debugPrint('Release notes found (${notes.length} characters)');
+        } else {
+          debugPrint('No release notes found');
+        }
+        return notes;
+      } else {
+        debugPrint(
+          'Failed to get release notes. Status: ${response.statusCode}',
+        );
       }
     } catch (e) {
-      // Error getting release notes
-      return null;
+      debugPrint('Error getting release notes: $e');
     }
     return null;
   }

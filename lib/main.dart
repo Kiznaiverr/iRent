@@ -71,17 +71,25 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   Future<void> _checkForUpdates() async {
     try {
+      debugPrint('Starting update check...');
       final isUpdateAvailable = await UpdateService.isUpdateAvailable();
       if (isUpdateAvailable) {
+        debugPrint('Update available! Fetching details...');
         _latestVersion = await UpdateService.getLatestVersion();
         _releaseNotes = await UpdateService.getReleaseNotes() ?? '';
+        debugPrint(
+          'Update details - Version: $_latestVersion, Notes length: ${_releaseNotes?.length ?? 0}',
+        );
+      } else {
+        debugPrint('App is up to date');
       }
     } catch (e) {
-      // Error checking for updates
+      debugPrint('Error checking for updates: $e');
     } finally {
       setState(() {
         _updateChecked = true;
       });
+      debugPrint('Update check completed');
     }
   }
 
@@ -96,6 +104,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         if (mounted) {
           if (_latestVersion != null && _releaseNotes != null) {
             // Ada update, navigate ke update screen
+            debugPrint(
+              'Navigating to update screen (version: $_latestVersion)',
+            );
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
                 builder: (context) => UpdateScreen(
@@ -106,9 +117,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             );
           } else {
             // Tidak ada update, lanjut ke auth navigation
+            debugPrint('No update available, proceeding to normal flow');
             if (authState.isAuthenticated) {
+              debugPrint('User authenticated, navigating to home');
               Navigator.of(context).pushReplacementNamed('/home');
             } else {
+              debugPrint('User not authenticated, navigating to login');
               Navigator.of(context).pushReplacementNamed('/login');
             }
           }

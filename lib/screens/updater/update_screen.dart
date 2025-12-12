@@ -76,14 +76,17 @@ class _UpdateScreenState extends ConsumerState<UpdateScreen> {
   }
 
   Future<void> _startDownload() async {
+    debugPrint('Starting download process...');
     // Request storage permission first
     await _requestStoragePermission();
 
     // Check permission again
     if (!await Permission.storage.isGranted) {
+      debugPrint('Storage permission denied');
       return; // Permission not granted, dialog already shown
     }
 
+    debugPrint('Storage permission granted');
     setState(() {
       _isDownloading = true;
       _downloadProgress = 0.0;
@@ -94,18 +97,21 @@ class _UpdateScreenState extends ConsumerState<UpdateScreen> {
         widget.latestVersion,
       );
       if (downloadUrl == null) {
+        debugPrint('No download URL available');
         _showError('Failed to get download URL');
         return;
       }
 
       final directory = await getExternalStorageDirectory();
       if (directory == null) {
+        debugPrint('Could not get external storage directory');
         _showError('Failed to get storage directory');
         return;
       }
 
       final fileName = 'iRent-v${widget.latestVersion}.apk';
       final savePath = '${directory.path}/$fileName';
+      debugPrint('Download path: $savePath');
 
       _taskId = await FlutterDownloader.enqueue(
         url: downloadUrl,
@@ -116,15 +122,20 @@ class _UpdateScreenState extends ConsumerState<UpdateScreen> {
       );
 
       if (_taskId != null) {
+        debugPrint('Download task created with ID: $_taskId');
         _downloadPath = savePath;
         _monitorDownload(_taskId!);
+      } else {
+        debugPrint('Failed to create download task');
       }
     } catch (e) {
+      debugPrint('Download failed: $e');
       _showError('Download failed: $e');
     }
   }
 
   void _monitorDownload(String taskId) {
+    debugPrint('Starting download monitoring for task: $taskId');
     FlutterDownloader.registerCallback((id, status, progress) {
       if (id == taskId) {
         setState(() {
@@ -132,9 +143,12 @@ class _UpdateScreenState extends ConsumerState<UpdateScreen> {
         });
 
         final taskStatus = DownloadTaskStatus.values[status];
+        debugPrint('Download progress: $progress% (Status: $taskStatus)');
         if (taskStatus == DownloadTaskStatus.complete) {
+          debugPrint('Download completed successfully');
           _onDownloadComplete();
         } else if (taskStatus == DownloadTaskStatus.failed) {
+          debugPrint('Download failed');
           _showError('Download failed');
         }
       }
@@ -170,14 +184,22 @@ class _UpdateScreenState extends ConsumerState<UpdateScreen> {
   }
 
   Future<void> _installApk() async {
-    if (_downloadPath == null) return;
+    if (_downloadPath == null) {
+      debugPrint('No download path available for installation');
+      return;
+    }
 
+    debugPrint('Starting APK installation: $_downloadPath');
     try {
       final result = await OpenFile.open(_downloadPath!);
+      debugPrint('Install result: ${result.type} - ${result.message}');
       if (result.type != ResultType.done) {
         _showError('Failed to install APK. Please check your device settings.');
+      } else {
+        debugPrint('APK installation initiated successfully');
       }
     } catch (e) {
+      debugPrint('Installation failed: $e');
       _showError('Installation failed: $e');
     }
   }
