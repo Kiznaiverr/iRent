@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/auth_provider.dart';
+import '../../theme/theme.dart';
+import '../../widgets/common/buttons/gradient_button.dart';
+import '../../widgets/common/inputs/custom_text_field.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
 
@@ -44,7 +47,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authState = ref.watch(authProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -53,11 +56,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Container(
                 height: 260,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [const Color(0xFF6B9FE8), const Color(0xFF8AB4F8)],
-                  ),
+                  gradient: Theme.of(context).primaryGradient,
                 ),
                 child: Stack(
                   children: [
@@ -96,30 +95,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.1),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
+                              boxShadow: [Theme.of(context).cardShadow],
                             ),
                             child: const Icon(
                               Icons.phone_iphone_rounded,
                               size: 48,
-                              color: Color(0xFF6B9FE8),
+                              color: AppColors.primary,
                             ),
                           ),
                           const SizedBox(height: 20),
-                          const Text(
-                            'iRent',
-                            style: TextStyle(
-                              fontSize: 36,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: 1,
-                            ),
-                          ),
+                          Text('iRent', style: AppTextStyles.headlineLarge),
                           const SizedBox(height: 8),
                           Text(
                             'Sewa iPhone Mudah & Terpercaya',
@@ -143,13 +128,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 30,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
+                    boxShadow: [Theme.of(context).cardShadow],
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(28),
@@ -158,77 +137,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text(
-                            'Masuk',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1A1A1A),
-                            ),
-                          ),
+                          Text('Masuk', style: AppTextStyles.headlineSmall),
                           const SizedBox(height: 8),
                           Text(
                             'Silakan masuk ke akun Anda',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 32),
 
                           // Username Field
-                          TextFormField(
+                          CustomTextField(
                             controller: _usernameController,
-                            decoration: InputDecoration(
-                              labelText: 'Username',
-                              prefixIcon: Container(
-                                margin: const EdgeInsets.all(12),
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      const Color(
-                                        0xFF6B9FE8,
-                                      ).withValues(alpha: 0.15),
-                                      const Color(
-                                        0xFF8AB4F8,
-                                      ).withValues(alpha: 0.1),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.person_outline_rounded,
-                                  color: Color(0xFF6B9FE8),
-                                  size: 20,
-                                ),
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFFF8F9FA),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFF6B9FE8),
-                                  width: 2,
-                                ),
-                              ),
-                              errorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: const BorderSide(
-                                  color: Colors.red,
-                                  width: 1,
-                                ),
-                              ),
-                            ),
+                            labelText: 'Username',
+                            prefixIcon: Icons.person_outline_rounded,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Username tidak boleh kosong';
@@ -239,70 +162,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           const SizedBox(height: 20),
 
                           // Password Field
-                          TextFormField(
+                          CustomTextField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,
-                            decoration: InputDecoration(
-                              labelText: 'Password',
-                              prefixIcon: Container(
-                                margin: const EdgeInsets.all(12),
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      const Color(
-                                        0xFF6B9FE8,
-                                      ).withValues(alpha: 0.15),
-                                      const Color(
-                                        0xFF8AB4F8,
-                                      ).withValues(alpha: 0.1),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.lock_outline_rounded,
-                                  color: Color(0xFF6B9FE8),
-                                  size: 20,
-                                ),
+                            labelText: 'Password',
+                            prefixIcon: Icons.lock_outline_rounded,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: Colors.grey[600],
                               ),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_off_outlined
-                                      : Icons.visibility_outlined,
-                                  color: Colors.grey[600],
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _obscurePassword = !_obscurePassword;
-                                  });
-                                },
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFFF8F9FA),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFF6B9FE8),
-                                  width: 2,
-                                ),
-                              ),
-                              errorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: const BorderSide(
-                                  color: Colors.red,
-                                  width: 1,
-                                ),
-                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -345,52 +221,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           const SizedBox(height: 24),
 
                           // Login Button
-                          Container(
-                            height: 56,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF6B9FE8), Color(0xFF8AB4F8)],
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(
-                                    0xFF6B9FE8,
-                                  ).withValues(alpha: 0.3),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: authState.isLoading ? null : _login,
-                                borderRadius: BorderRadius.circular(16),
-                                child: Center(
-                                  child: authState.isLoading
-                                      ? const SizedBox(
-                                          height: 24,
-                                          width: 24,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2.5,
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                  Colors.white,
-                                                ),
-                                          ),
-                                        )
-                                      : const Text(
-                                          'Masuk',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                ),
-                              ),
-                            ),
+                          GradientButton(
+                            text: 'Masuk',
+                            isLoading: authState.isLoading,
+                            onPressed: _login,
                           ),
                           const SizedBox(height: 20),
 
@@ -431,7 +265,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             height: 56,
                             decoration: BoxDecoration(
                               border: Border.all(
-                                color: const Color(0xFF6B9FE8),
+                                color: AppColors.primary,
                                 width: 2,
                               ),
                               borderRadius: BorderRadius.circular(16),
@@ -452,7 +286,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   child: Text(
                                     'Daftar Akun Baru',
                                     style: TextStyle(
-                                      color: Color(0xFF6B9FE8),
+                                      color: AppColors.primary,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w700,
                                     ),

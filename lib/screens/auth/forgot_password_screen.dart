@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/auth_provider.dart';
+import '../../theme/theme.dart';
+import '../../widgets/common/buttons/gradient_button.dart';
+import '../../widgets/common/inputs/custom_text_field.dart';
+import '../../widgets/common/indicators/step_indicator.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -16,6 +20,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _codeController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _codeSent = false;
+  bool _passwordReset = false;
   bool _obscurePassword = true;
 
   @override
@@ -52,7 +57,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         );
 
     if (success && mounted) {
-      Navigator.of(context).pop();
+      setState(() => _passwordReset = true);
+      // Add a small delay to show the success state before navigating back
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
     }
   }
 
@@ -61,7 +71,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     final authState = ref.watch(authProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
           // Modern App Bar
@@ -85,16 +95,16 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               child: IconButton(
                 icon: const Icon(
                   Icons.arrow_back_rounded,
-                  color: Color(0xFF6B9FE8),
+                  color: AppColors.primary,
                 ),
                 onPressed: () => Navigator.pop(context),
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
+              title: Text(
                 'Lupa Password',
                 style: TextStyle(
-                  color: Color(0xFF1A1A1A),
+                  color: AppColors.textPrimary,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -105,8 +115,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      const Color(0xFF6B9FE8).withValues(alpha: 0.05),
-                      const Color(0xFF8AB4F8).withValues(alpha: 0.02),
+                      AppColors.primaryWithAlpha(0.05),
+                      AppColors.secondaryWithAlpha(0.02),
                     ],
                   ),
                 ),
@@ -120,8 +130,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              const Color(0xFF6B9FE8).withValues(alpha: 0.15),
-                              const Color(0xFF8AB4F8).withValues(alpha: 0.1),
+                              AppColors.primaryWithAlpha(0.15),
+                              AppColors.secondaryWithAlpha(0.1),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(20),
@@ -129,7 +139,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         child: const Icon(
                           Icons.lock_reset_rounded,
                           size: 40,
-                          color: Color(0xFF6B9FE8),
+                          color: AppColors.primary,
                         ),
                       ),
                     ],
@@ -151,7 +161,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     // Stepper Indicator
                     Row(
                       children: [
-                        _buildStepIndicator(
+                        StepIndicator(
                           stepNumber: 1,
                           label: 'Username',
                           isActive: true,
@@ -164,16 +174,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: _codeSent
-                                    ? [
-                                        const Color(0xFF6B9FE8),
-                                        const Color(0xFF8AB4F8),
-                                      ]
+                                    ? [AppColors.primary, AppColors.secondary]
                                     : [Colors.grey[300]!, Colors.grey[300]!],
                               ),
                             ),
                           ),
                         ),
-                        _buildStepIndicator(
+                        StepIndicator(
                           stepNumber: 2,
                           label: 'Reset',
                           isActive: _codeSent,
@@ -192,16 +199,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: !_codeSent
-                              ? const Color(0xFF6B9FE8)
+                              ? AppColors.primary
                               : Colors.grey[300]!,
                           width: !_codeSent ? 2 : 1,
                         ),
                         boxShadow: !_codeSent
                             ? [
                                 BoxShadow(
-                                  color: const Color(
-                                    0xFF6B9FE8,
-                                  ).withValues(alpha: 0.1),
+                                  color: AppColors.primaryWithAlpha(0.1),
                                   blurRadius: 20,
                                   offset: const Offset(0, 8),
                                 ),
@@ -214,45 +219,43 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(10),
+                                width: 48,
+                                height: 48,
+                                padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      const Color(
-                                        0xFF6B9FE8,
-                                      ).withValues(alpha: 0.15),
-                                      const Color(
-                                        0xFF8AB4F8,
-                                      ).withValues(alpha: 0.1),
+                                      AppColors.primaryWithAlpha(0.15),
+                                      AppColors.secondaryWithAlpha(0.1),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.person_outline_rounded,
-                                  color: Color(0xFF6B9FE8),
+                                  color: AppColors.primary,
                                   size: 24,
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              Expanded(
+                              const Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
+                                    Text(
                                       'Step 1',
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: Color(0xFF6B9FE8),
+                                        color: AppColors.primary,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                    const Text(
+                                    Text(
                                       'Masukkan Username',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w700,
-                                        color: Color(0xFF1A1A1A),
+                                        color: AppColors.textPrimary,
                                       ),
                                     ),
                                   ],
@@ -262,7 +265,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(6),
                                   decoration: const BoxDecoration(
-                                    color: Color(0xFF4CAF50),
+                                    color: AppColors.success,
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
@@ -274,120 +277,25 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             ],
                           ),
                           const SizedBox(height: 20),
-                          TextFormField(
+                          CustomTextField(
                             controller: _usernameController,
                             enabled: !_codeSent,
-                            decoration: InputDecoration(
-                              labelText: 'Username',
-                              prefixIcon: Container(
-                                margin: const EdgeInsets.all(12),
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      const Color(
-                                        0xFF6B9FE8,
-                                      ).withValues(alpha: 0.15),
-                                      const Color(
-                                        0xFF8AB4F8,
-                                      ).withValues(alpha: 0.1),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.account_circle_outlined,
-                                  color: Color(0xFF6B9FE8),
-                                  size: 20,
-                                ),
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFFF8F9FA),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
-                              ),
-                              disabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFF6B9FE8),
-                                  width: 2,
-                                ),
-                              ),
-                            ),
+                            labelText: 'Username',
+                            prefixIcon: Icons.account_circle_outlined,
                             validator: (value) => value?.isEmpty ?? true
                                 ? 'Username tidak boleh kosong'
                                 : null,
                           ),
                           if (!_codeSent) ...[
                             const SizedBox(height: 20),
-                            Container(
-                              height: 56,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFF6B9FE8),
-                                    Color(0xFF8AB4F8),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(
-                                      0xFF6B9FE8,
-                                    ).withValues(alpha: 0.3),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 6),
-                                  ),
-                                ],
-                              ),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: authState.isLoading ? null : _sendCode,
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: Center(
-                                    child: authState.isLoading
-                                        ? const SizedBox(
-                                            height: 24,
-                                            width: 24,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2.5,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                    Colors.white,
-                                                  ),
-                                            ),
-                                          )
-                                        : const Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                'Kirim Kode',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                              SizedBox(width: 8),
-                                              Icon(
-                                                Icons.arrow_forward_rounded,
-                                                color: Colors.white,
-                                                size: 20,
-                                              ),
-                                            ],
-                                          ),
-                                  ),
-                                ),
+                            GradientButton(
+                              text: 'Kirim Kode',
+                              isLoading: authState.isLoading,
+                              onPressed: _sendCode,
+                              trailingIcon: const Icon(
+                                Icons.arrow_forward_rounded,
+                                color: Colors.white,
+                                size: 20,
                               ),
                             ),
                           ],
@@ -406,14 +314,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: const Color(0xFF6B9FE8),
+                            color: AppColors.primary,
                             width: 2,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(
-                                0xFF6B9FE8,
-                              ).withValues(alpha: 0.1),
+                              color: AppColors.primaryWithAlpha(0.1),
                               blurRadius: 20,
                               offset: const Offset(0, 8),
                             ),
@@ -425,23 +331,21 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(10),
+                                  width: 48,
+                                  height: 48,
+                                  padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       colors: [
-                                        const Color(
-                                          0xFF6B9FE8,
-                                        ).withValues(alpha: 0.15),
-                                        const Color(
-                                          0xFF8AB4F8,
-                                        ).withValues(alpha: 0.1),
+                                        AppColors.primaryWithAlpha(0.15),
+                                        AppColors.secondaryWithAlpha(0.1),
                                       ],
                                     ),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.lock_reset_rounded,
-                                    color: Color(0xFF6B9FE8),
+                                    color: AppColors.primary,
                                     size: 24,
                                   ),
                                 ),
@@ -455,7 +359,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                                         'Step 2',
                                         style: TextStyle(
                                           fontSize: 12,
-                                          color: Color(0xFF6B9FE8),
+                                          color: AppColors.primary,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -464,12 +368,25 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w700,
-                                          color: Color(0xFF1A1A1A),
+                                          color: AppColors.textPrimary,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
+                                if (_passwordReset)
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.success,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.check_rounded,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  ),
                               ],
                             ),
                             const SizedBox(height: 16),
@@ -502,48 +419,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                               ),
                             ),
                             const SizedBox(height: 20),
-                            TextFormField(
+                            CustomTextField(
                               controller: _codeController,
                               keyboardType: TextInputType.number,
                               maxLength: 6,
-                              decoration: InputDecoration(
-                                labelText: 'Kode Verifikasi',
-                                prefixIcon: Container(
-                                  margin: const EdgeInsets.all(12),
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        const Color(
-                                          0xFF6B9FE8,
-                                        ).withValues(alpha: 0.15),
-                                        const Color(
-                                          0xFF8AB4F8,
-                                        ).withValues(alpha: 0.1),
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Icon(
-                                    Icons.verified_user_outlined,
-                                    color: Color(0xFF6B9FE8),
-                                    size: 20,
-                                  ),
-                                ),
-                                filled: true,
-                                fillColor: const Color(0xFFF8F9FA),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFF6B9FE8),
-                                    width: 2,
-                                  ),
-                                ),
-                              ),
+                              labelText: 'Kode Verifikasi',
+                              prefixIcon: Icons.verified_user_outlined,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Kode tidak boleh kosong';
@@ -555,56 +436,20 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                               },
                             ),
                             const SizedBox(height: 16),
-                            TextFormField(
+                            CustomTextField(
                               controller: _passwordController,
                               obscureText: _obscurePassword,
-                              decoration: InputDecoration(
-                                labelText: 'Password Baru',
-                                prefixIcon: Container(
-                                  margin: const EdgeInsets.all(12),
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        const Color(
-                                          0xFF6B9FE8,
-                                        ).withValues(alpha: 0.15),
-                                        const Color(
-                                          0xFF8AB4F8,
-                                        ).withValues(alpha: 0.1),
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Icon(
-                                    Icons.lock_outline_rounded,
-                                    color: Color(0xFF6B9FE8),
-                                    size: 20,
-                                  ),
+                              labelText: 'Password Baru',
+                              prefixIcon: Icons.lock_outline_rounded,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: Colors.grey[600],
                                 ),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword
-                                        ? Icons.visibility_off_outlined
-                                        : Icons.visibility_outlined,
-                                    color: Colors.grey[600],
-                                  ),
-                                  onPressed: () => setState(
-                                    () => _obscurePassword = !_obscurePassword,
-                                  ),
-                                ),
-                                filled: true,
-                                fillColor: const Color(0xFFF8F9FA),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFF6B9FE8),
-                                    width: 2,
-                                  ),
+                                onPressed: () => setState(
+                                  () => _obscurePassword = !_obscurePassword,
                                 ),
                               ),
                               validator: (value) {
@@ -618,67 +463,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                               },
                             ),
                             const SizedBox(height: 24),
-                            Container(
-                              height: 56,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFF6B9FE8),
-                                    Color(0xFF8AB4F8),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(
-                                      0xFF6B9FE8,
-                                    ).withValues(alpha: 0.3),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 6),
-                                  ),
-                                ],
-                              ),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: authState.isLoading
-                                      ? null
-                                      : _resetPassword,
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: Center(
-                                    child: authState.isLoading
-                                        ? const SizedBox(
-                                            height: 24,
-                                            width: 24,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2.5,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                    Colors.white,
-                                                  ),
-                                            ),
-                                          )
-                                        : const Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                'Reset Password',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                              SizedBox(width: 8),
-                                              Icon(
-                                                Icons.check_circle_rounded,
-                                                color: Colors.white,
-                                                size: 20,
-                                              ),
-                                            ],
-                                          ),
-                                  ),
-                                ),
+                            GradientButton(
+                              text: 'Reset Password',
+                              isLoading: authState.isLoading,
+                              onPressed: _resetPassword,
+                              trailingIcon: const Icon(
+                                Icons.check_circle_rounded,
+                                color: Colors.white,
+                                size: 20,
                               ),
                             ),
                           ],
@@ -693,63 +485,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildStepIndicator({
-    required int stepNumber,
-    required String label,
-    required bool isActive,
-    required bool isCompleted,
-  }) {
-    return Column(
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            gradient: isActive || isCompleted
-                ? const LinearGradient(
-                    colors: [Color(0xFF6B9FE8), Color(0xFF8AB4F8)],
-                  )
-                : null,
-            color: !isActive && !isCompleted ? Colors.grey[300] : null,
-            shape: BoxShape.circle,
-            boxShadow: isActive
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF6B9FE8).withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Center(
-            child: isCompleted
-                ? const Icon(Icons.check_rounded, color: Colors.white, size: 24)
-                : Text(
-                    stepNumber.toString(),
-                    style: TextStyle(
-                      color: isActive ? Colors.white : Colors.grey[600],
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: isActive || isCompleted
-                ? const Color(0xFF6B9FE8)
-                : Colors.grey[600],
-          ),
-        ),
-      ],
     );
   }
 }
