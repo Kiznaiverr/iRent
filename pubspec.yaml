@@ -34,11 +34,30 @@ dependencies:
   # Image Picker
   image_picker: ^1.1.2
   
+  # Package Info
+  package_info_plus: ^8.0.0
+  
   # Icons
   cupertino_icons: ^1.0.8
   
-  # Package Info
-  package_info_plus: ^8.0.0
+  # File operations
+  path_provider: ^2.1.0
+  
+  # HTTP for API calls
+  http: ^1.1.0
+  
+  # Version comparison
+  version: ^3.0.0
+  
+  # File download
+  flutter_downloader: ^1.11.0
+  
+  # File opening/installation
+  open_file: ^3.3.0
+  
+  # URL launching
+  url_launcher: ^6.1.0
+  permission_handler: ^12.0.1
 
 dev_dependencies:
   flutter_test:

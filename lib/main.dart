@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/updater/update_screen.dart';
 import 'providers/auth_provider.dart';
+import 'services/update_service.dart';
 import 'theme/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await FlutterDownloader.initialize(debug: true);
   await initializeDateFormatting('id_ID', null);
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -32,6 +36,15 @@ class MyApp extends ConsumerWidget {
           final initialTab = args?['tab'] as int? ?? 0;
           return HomeScreen(initialTab: initialTab);
         },
+        '/update': (context) {
+          final args =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>?;
+          return UpdateScreen(
+            latestVersion: args?['latestVersion'] ?? '',
+            releaseNotes: args?['releaseNotes'] ?? '',
+          );
+        },
       },
     );
   }
@@ -46,26 +59,58 @@ class SplashScreen extends ConsumerStatefulWidget {
 
 class _SplashScreenState extends ConsumerState<SplashScreen> {
   bool _hasNavigated = false;
+  bool _updateChecked = false;
+  String? _latestVersion;
+  String? _releaseNotes;
 
   @override
   void initState() {
     super.initState();
-    // Auth check sudah dilakukan di AuthNotifier constructor
+    _checkForUpdates();
+  }
+
+  Future<void> _checkForUpdates() async {
+    try {
+      final isUpdateAvailable = await UpdateService.isUpdateAvailable();
+      if (isUpdateAvailable) {
+        _latestVersion = await UpdateService.getLatestVersion();
+        _releaseNotes = await UpdateService.getReleaseNotes() ?? '';
+      }
+    } catch (e) {
+      // Error checking for updates
+    } finally {
+      setState(() {
+        _updateChecked = true;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
 
-    // Navigate berdasarkan authentication status setelah loading selesai
-    if (!authState.isLoading && !_hasNavigated) {
+    // Navigate berdasarkan authentication status setelah loading selesai dan update check selesai
+    if (_updateChecked && !authState.isLoading && !_hasNavigated) {
       _hasNavigated = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          if (authState.isAuthenticated) {
-            Navigator.of(context).pushReplacementNamed('/home');
+          if (_latestVersion != null && _releaseNotes != null) {
+            // Ada update, navigate ke update screen
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => UpdateScreen(
+                  latestVersion: _latestVersion!,
+                  releaseNotes: _releaseNotes!,
+                ),
+              ),
+            );
           } else {
-            Navigator.of(context).pushReplacementNamed('/login');
+            // Tidak ada update, lanjut ke auth navigation
+            if (authState.isAuthenticated) {
+              Navigator.of(context).pushReplacementNamed('/home');
+            } else {
+              Navigator.of(context).pushReplacementNamed('/login');
+            }
           }
         }
       });
