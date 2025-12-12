@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/iphone_provider.dart';
 import '../../models/iphone_model.dart';
@@ -34,11 +35,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     'iPhone 13',
     'iPhone 12',
   ];
+  String? _appVersion;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialTab;
+    _loadAppVersion();
     Future.microtask(() {
       ref.read(iphoneProvider.notifier).getActiveIPhones();
       // Load profile saat home screen dibuka
@@ -50,6 +53,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadAppVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    setState(() {
+      _appVersion = packageInfo.version;
+    });
   }
 
   @override
@@ -432,6 +442,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
             ),
+
+            // App Version
+            if (_appVersion != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Text(
+                  'Versi $_appVersion',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
           ],
         ),
       ),
