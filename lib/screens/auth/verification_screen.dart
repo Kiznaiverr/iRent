@@ -90,6 +90,13 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
     });
   }
 
+  void _clearAllOtp() {
+    for (var controller in _otpControllers) {
+      controller.clear();
+    }
+    _otpFocusNodes[0].requestFocus();
+  }
+
   Future<void> _verifyOtp() async {
     final otp = _otpControllers.map((c) => c.text).join();
     if (otp.length != 6) {
@@ -117,17 +124,35 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
         }
       } else {
         setState(() => _errorMessage = 'Kode verifikasi salah');
+        // Clear all OTP fields when verification fails
+        _clearAllOtp();
       }
     } catch (e) {
       setState(() => _errorMessage = 'Terjadi kesalahan: $e');
+      // Clear all OTP fields when error occurs
+      _clearAllOtp();
     } finally {
       setState(() => _isVerifying = false);
     }
   }
 
   void _onOtpChanged(String value, int index) {
-    if (value.length == 1 && index < 5) {
-      _otpFocusNodes[index + 1].requestFocus();
+    // Handle when user types a new digit
+    if (value.isNotEmpty) {
+      // If user types more than 1 character (paste), take only the first
+      if (value.length > 1) {
+        _otpControllers[index].text = value[0];
+        _otpControllers[index].selection = TextSelection.fromPosition(
+          TextPosition(offset: 1),
+        );
+      }
+      // Move to next field
+      if (index < 5) {
+        _otpFocusNodes[index + 1].requestFocus();
+      } else {
+        // Last field, remove focus
+        _otpFocusNodes[index].unfocus();
+      }
     }
 
     // Auto verify when all fields are filled
@@ -270,34 +295,86 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                       width: 45,
                       height: 55,
                       margin: const EdgeInsets.symmetric(horizontal: 4),
-                      child: TextField(
-                        controller: _otpControllers[index],
-                        focusNode: _otpFocusNodes[index],
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.center,
-                        maxLength: 1,
-                        decoration: InputDecoration(
-                          counterText: '',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE2E8F0),
+                      child: KeyboardListener(
+                        focusNode: FocusNode(),
+                        onKeyEvent: (event) {
+                          if (event is KeyDownEvent) {
+                            // Handle backspace/delete key
+                            if (event.logicalKey ==
+                                    LogicalKeyboardKey.backspace ||
+                                event.logicalKey == LogicalKeyboardKey.delete) {
+                              if (_otpControllers[index].text.isEmpty &&
+                                  index > 0) {
+                                // If current field is empty, move to previous and clear it
+                                _otpFocusNodes[index - 1].requestFocus();
+                                _otpControllers[index - 1].clear();
+                              } else {
+                                // Clear current field
+                                _otpControllers[index].clear();
+                              }
+                            }
+                          }
+                        },
+                        child: TextField(
+                          controller: _otpControllers[index],
+                          focusNode: _otpFocusNodes[index],
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          maxLength: 1,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1A202C),
+                          ),
+                          decoration: InputDecoration(
+                            counterText: '',
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 12,
                             ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: Color(0xFFE2E8F0),
+                                width: 2,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: Color(0xFFE2E8F0),
+                                width: 2,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: AppColors.primary,
+                                width: 2,
+                              ),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: AppColors.primary),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          onChanged: (value) {
+                            _onOtpChanged(value, index);
+                          },
                         ),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        onChanged: (value) => _onOtpChanged(value, index),
                       ),
                     );
                   }),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Clear button
+                TextButton.icon(
+                  onPressed: _clearAllOtp,
+                  icon: const Icon(Icons.clear_all, size: 18),
+                  label: const Text('Hapus Semua'),
+                  style: TextButton.styleFrom(foregroundColor: Colors.red[700]),
                 ),
 
                 const SizedBox(height: 24),
