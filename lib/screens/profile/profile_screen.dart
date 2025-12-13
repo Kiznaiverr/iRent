@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/profile/index.dart';
+import '../rental/my_rentals_screen.dart';
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -28,10 +29,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (user == null) {
       return const Scaffold(body: Center(child: Text('User not found')));
     }
-
-    debugPrint(
-      'ProfileScreen - User: ${user.name}, phoneVerified: ${user.phoneVerified}, isActive: ${user.isActive}, penalty: ${user.penalty}',
-    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -63,6 +60,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       user: user,
                       onVerifyPhone: () {
                         Navigator.pushNamed(context, '/verify-phone');
+                      },
+                      onNavigateToRental: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MyRentalsScreen(),
+                          ),
+                        );
                       },
                     ),
                     if (user.penalty > 0 ||

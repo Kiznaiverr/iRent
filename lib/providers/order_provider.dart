@@ -1,8 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../config/api_config.dart';
 import '../models/order_model.dart';
 import '../services/api_service.dart';
+import '../screens/rental/my_rentals_screen.dart';
 import 'auth_provider.dart';
 
 // Order state
@@ -42,6 +44,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
 
   // Create order
   Future<bool> createOrder({
+    required BuildContext context,
     required int iphoneId,
     required String startDate,
     required String endDate,
@@ -71,11 +74,61 @@ class OrderNotifier extends StateNotifier<OrderState> {
       // Handle non-success responses
       state = state.copyWith(isLoading: false);
       final errorMessage = response.data?['message'] ?? 'Gagal membuat order';
+
+      // Check for phone verification error
+      if (errorMessage.toLowerCase().contains('verify your number') ||
+          errorMessage.toLowerCase().contains('verifikasi') ||
+          errorMessage.toLowerCase().contains('please verify')) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            _showVerificationDialog(context);
+          }
+        });
+        return false;
+      }
+
+      // Check for overdue rental error
+      if (errorMessage.toLowerCase().contains('overdue') ||
+          errorMessage.toLowerCase().contains('penalties') ||
+          errorMessage.toLowerCase().contains('settle your outstanding')) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            _showOverdueRentalDialog(context);
+          }
+        });
+        return false;
+      }
+
       Fluttertoast.showToast(msg: errorMessage);
       return false;
     } catch (e) {
       final error = _apiService.handleError(e);
       state = state.copyWith(isLoading: false, error: error);
+
+      // Check if it's a phone verification error
+      if (error.toLowerCase().contains('verify your number') ||
+          error.toLowerCase().contains('verifikasi') ||
+          error.toLowerCase().contains('please verify')) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            _showVerificationDialog(context);
+          }
+        });
+        return false;
+      }
+
+      // Check if it's an overdue rental error
+      if (error.toLowerCase().contains('overdue') ||
+          error.toLowerCase().contains('penalties') ||
+          error.toLowerCase().contains('settle your outstanding')) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            _showOverdueRentalDialog(context);
+          }
+        });
+        return false;
+      }
+
       Fluttertoast.showToast(msg: error);
       return false;
     }
@@ -116,9 +169,75 @@ class OrderNotifier extends StateNotifier<OrderState> {
     }
   }
 
-  // Clear selected order
-  void clearSelected() {
-    state = state.copyWith(selectedOrder: null);
+  // Show verification dialog
+  void _showVerificationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Verifikasi Diperlukan'),
+        content: const Text(
+          'Untuk membuat pesanan, Anda perlu memverifikasi nomor telepon terlebih dahulu.',
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            child: const Text('Nanti'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/verify-phone');
+            },
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            child: const Text('Verifikasi'),
+          ),
+        ],
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      ),
+    );
+  }
+
+  void _showOverdueRentalDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Penyewaan Terlambat'),
+        content: const Text(
+          'Anda tidak dapat membuat pesanan baru karena memiliki penyewaan yang terlambat. Silakan selesaikan denda yang belum dibayar terlebih dahulu.',
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            child: const Text('Nanti'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // Navigate to rental screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MyRentalsScreen()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            child: const Text('Lihat Penyewaan'),
+          ),
+        ],
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      ),
+    );
   }
 }
 

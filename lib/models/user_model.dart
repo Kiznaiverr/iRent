@@ -1,3 +1,5 @@
+import 'overdue_rental_model.dart';
+
 class UserModel {
   final int id;
   final String name;
@@ -10,6 +12,7 @@ class UserModel {
   final double penalty;
   final String? profile;
   final bool? phoneVerified;
+  final PenaltyInfo? penaltyInfo;
 
   UserModel({
     required this.id,
@@ -23,6 +26,7 @@ class UserModel {
     required this.penalty,
     this.profile,
     this.phoneVerified,
+    this.penaltyInfo,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -38,6 +42,9 @@ class UserModel {
       penalty: double.tryParse(json['penalty']?.toString() ?? '0') ?? 0.0,
       profile: json['profile'],
       phoneVerified: json['isverified'],
+      penaltyInfo: json['penalty_info'] != null
+          ? PenaltyInfo.fromJson(json['penalty_info'])
+          : null,
     );
   }
 
@@ -54,6 +61,7 @@ class UserModel {
       'penalty': penalty,
       'profile': profile,
       'phone_verified': phoneVerified,
+      'penalty_info': penaltyInfo?.toJson(),
     };
   }
 
@@ -69,6 +77,7 @@ class UserModel {
     double? penalty,
     String? profile,
     bool? phoneVerified,
+    PenaltyInfo? penaltyInfo,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -82,6 +91,7 @@ class UserModel {
       penalty: penalty ?? this.penalty,
       profile: profile ?? this.profile,
       phoneVerified: phoneVerified ?? this.phoneVerified,
+      penaltyInfo: penaltyInfo ?? this.penaltyInfo,
     );
   }
 
