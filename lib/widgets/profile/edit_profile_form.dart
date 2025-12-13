@@ -49,7 +49,7 @@ class EditProfileForm extends StatelessWidget {
           const SizedBox(height: 16),
           CustomTextField(
             controller: emailController,
-            labelText: 'Email (Opsional)',
+            labelText: 'Email',
             prefixIcon: Icons.email,
             keyboardType: TextInputType.emailAddress,
           ),

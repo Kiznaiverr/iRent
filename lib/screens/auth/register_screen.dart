@@ -251,7 +251,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
                     CustomTextField(
                       controller: _emailController,
-                      labelText: 'Email (Opsional)',
+                      labelText: 'Email',
                       prefixIcon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                     ),
