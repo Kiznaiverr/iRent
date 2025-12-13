@@ -69,7 +69,8 @@ class OverdueModel {
       orderCode: json['order_code'] ?? '',
       orderTotal: json['order_total'] ?? '',
       daysOverdue: int.tryParse(json['days_overdue']?.toString() ?? '0') ?? 0,
-      penaltyPerDay: json['penalty_per_day'] ?? 0,
+      penaltyPerDay:
+          int.tryParse(json['penalty_per_day']?.toString() ?? '0') ?? 0,
       totalPenalty: json['total_penalty'] ?? '',
       originalEndDate: json['original_end_date'] ?? '',
       currentDate: json['current_date'] ?? '',

@@ -196,7 +196,9 @@ class OverdueRentalCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        formatter.format(overdue.totalPenalty),
+                        formatter.format(
+                          int.tryParse(overdue.totalPenalty) ?? 0,
+                        ),
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,

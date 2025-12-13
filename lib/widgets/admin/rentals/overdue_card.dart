@@ -199,7 +199,7 @@ class OverdueCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Denda: Rp ${NumberFormat('#,###').format(overdue.totalPenalty)}',
+                        'Denda: Rp ${NumberFormat('#,###').format(int.tryParse(overdue.totalPenalty) ?? 0)}',
                         style: TextStyle(
                           color: Colors.red[900],
                           fontWeight: FontWeight.w700,

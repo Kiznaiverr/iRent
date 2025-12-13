@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../models/overdue_model.dart';
+import '../../../providers/admin_provider.dart';
 
-class OverdueDetailDialog extends StatelessWidget {
+class OverdueDetailDialog extends ConsumerStatefulWidget {
   final OverdueModel overdue;
 
   const OverdueDetailDialog({super.key, required this.overdue});
@@ -14,6 +16,12 @@ class OverdueDetailDialog extends StatelessWidget {
     );
   }
 
+  @override
+  ConsumerState<OverdueDetailDialog> createState() =>
+      _OverdueDetailDialogState();
+}
+
+class _OverdueDetailDialogState extends ConsumerState<OverdueDetailDialog> {
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('dd MMM yyyy', 'id_ID');
@@ -80,20 +88,20 @@ class OverdueDetailDialog extends StatelessWidget {
                     // User Info with Avatar
                     Row(
                       children: [
-                        overdue.userProfile != null &&
-                                overdue.userProfile!.isNotEmpty
+                        widget.overdue.userProfile != null &&
+                                widget.overdue.userProfile!.isNotEmpty
                             ? CircleAvatar(
                                 radius: 30,
                                 backgroundImage: NetworkImage(
-                                  overdue.userProfile!,
+                                  widget.overdue.userProfile!,
                                 ),
                               )
                             : CircleAvatar(
                                 radius: 30,
                                 backgroundColor: Colors.red[100],
                                 child: Text(
-                                  overdue.userName.isNotEmpty
-                                      ? overdue.userName[0].toUpperCase()
+                                  widget.overdue.userName.isNotEmpty
+                                      ? widget.overdue.userName[0].toUpperCase()
                                       : 'U',
                                   style: const TextStyle(
                                     color: Color(0xFFC62828),
@@ -108,7 +116,7 @@ class OverdueDetailDialog extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                overdue.userName,
+                                widget.overdue.userName,
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -117,14 +125,14 @@ class OverdueDetailDialog extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                overdue.userEmail,
+                                widget.overdue.userEmail,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey[600],
                                 ),
                               ),
                               Text(
-                                overdue.userPhone,
+                                widget.overdue.userPhone,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey[600],
@@ -141,11 +149,11 @@ class OverdueDetailDialog extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     // iPhone & Order Info
-                    _buildDetailRow('iPhone', overdue.iphoneName),
-                    _buildDetailRow('Order Code', overdue.orderCode),
+                    _buildDetailRow('iPhone', widget.overdue.iphoneName),
+                    _buildDetailRow('Order Code', widget.overdue.orderCode),
                     _buildDetailRow(
                       'Order Total',
-                      'Rp ${NumberFormat('#,###').format(overdue.orderTotal)}',
+                      'Rp ${NumberFormat('#,###').format(double.tryParse(widget.overdue.orderTotal) ?? 0)}',
                     ),
 
                     const SizedBox(height: 16),
@@ -156,24 +164,26 @@ class OverdueDetailDialog extends StatelessWidget {
                     _buildDetailRow(
                       'Rental Start',
                       dateFormat.format(
-                        DateTime.parse(overdue.rentalStartDate),
+                        DateTime.parse(widget.overdue.rentalStartDate),
                       ),
                     ),
                     _buildDetailRow(
                       'Rental End',
-                      dateFormat.format(DateTime.parse(overdue.rentalEndDate)),
+                      dateFormat.format(
+                        DateTime.parse(widget.overdue.rentalEndDate),
+                      ),
                     ),
                     _buildDetailRow(
                       'Original End Date',
                       dateFormat.format(
-                        DateTime.parse(overdue.originalEndDate),
+                        DateTime.parse(widget.overdue.originalEndDate),
                       ),
                     ),
-                    if (overdue.actualReturnDate != null)
+                    if (widget.overdue.actualReturnDate != null)
                       _buildDetailRow(
                         'Actual Return',
                         dateFormat.format(
-                          DateTime.parse(overdue.actualReturnDate!),
+                          DateTime.parse(widget.overdue.actualReturnDate!),
                         ),
                       ),
 
@@ -214,7 +224,7 @@ class OverdueDetailDialog extends StatelessWidget {
                                 ],
                               ),
                               Text(
-                                '${overdue.daysOverdue} hari',
+                                '${widget.overdue.daysOverdue} hari',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -245,7 +255,7 @@ class OverdueDetailDialog extends StatelessWidget {
                                 ],
                               ),
                               Text(
-                                'Rp ${NumberFormat('#,###').format(overdue.penaltyPerDay)}',
+                                'Rp ${NumberFormat('#,###').format(widget.overdue.penaltyPerDay)}',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -278,7 +288,7 @@ class OverdueDetailDialog extends StatelessWidget {
                                 ],
                               ),
                               Text(
-                                'Rp ${NumberFormat('#,###').format(overdue.totalPenalty)}',
+                                'Rp ${NumberFormat('#,###').format(int.tryParse(widget.overdue.totalPenalty) ?? 0)}',
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
@@ -325,6 +335,27 @@ class OverdueDetailDialog extends StatelessWidget {
                       ),
                     ),
                   ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => _showReturnDialog(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4CAF50),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Kembalikan Rental',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -332,6 +363,66 @@ class OverdueDetailDialog extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _showReturnDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Konfirmasi Pengembalian'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Rental: ${widget.overdue.orderCode}'),
+            Text('User: ${widget.overdue.userName}'),
+            Text('iPhone: ${widget.overdue.iphoneName}'),
+            const SizedBox(height: 16),
+            const Text(
+              'Apakah Anda yakin ingin mengembalikan rental ini?',
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => _returnRental(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4CAF50),
+            ),
+            child: const Text('Kembalikan'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _returnRental(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    try {
+      // Send only date part, not full date-time
+      final returnDate = DateTime.now().toIso8601String().split('T')[0];
+      final success = await ref
+          .read(adminProvider.notifier)
+          .returnRental(widget.overdue.id, returnDate);
+
+      if (success && mounted) {
+        navigator.pop(); // Close return dialog
+        navigator.pop(); // Close detail dialog
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Rental berhasil dikembalikan')),
+        );
+      }
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
   }
 
   Widget _buildDetailRow(String label, String value) {

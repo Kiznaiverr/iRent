@@ -195,12 +195,13 @@ class RentalReturnDialog extends ConsumerWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () async {
+                        // Send only date part, not full date-time
+                        final returnDate = DateTime.now()
+                            .toIso8601String()
+                            .split('T')[0];
                         final success = await ref
                             .read(adminProvider.notifier)
-                            .returnRental(
-                              rental.id,
-                              DateTime.now().toIso8601String(),
-                            );
+                            .returnRental(rental.id, returnDate);
 
                         if (success && context.mounted) {
                           Navigator.pop(context);
