@@ -29,6 +29,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       return const Scaffold(body: Center(child: Text('User not found')));
     }
 
+    debugPrint(
+      'ProfileScreen - User: ${user.name}, phoneVerified: ${user.phoneVerified}, isActive: ${user.isActive}, penalty: ${user.penalty}',
+    );
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: RefreshIndicator(
@@ -57,13 +61,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     // Status Warnings
                     StatusWarnings(
                       user: user,
-                      onVerifyPhone: () async {
-                        await ref
-                            .read(authProvider.notifier)
-                            .sendVerificationCode();
-                        if (context.mounted) {
-                          _showVerificationDialog(context, ref);
-                        }
+                      onVerifyPhone: () {
+                        Navigator.pushNamed(context, '/verify-phone');
                       },
                     ),
                     if (user.penalty > 0 ||
@@ -158,52 +157,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ],
             ),
           ),
-        );
-      },
-    );
-  }
-
-  void _showVerificationDialog(BuildContext context, WidgetRef ref) {
-    final codeController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Verifikasi Nomor Telepon'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Kode verifikasi telah dikirim via WhatsApp'),
-              const SizedBox(height: 16),
-              TextField(
-                controller: codeController,
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                decoration: const InputDecoration(
-                  labelText: 'Kode Verifikasi',
-                  hintText: '6 digit kode',
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Batal'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final success = await ref
-                    .read(authProvider.notifier)
-                    .verifyCode(codeController.text.trim());
-                if (success && context.mounted) {
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Verifikasi'),
-            ),
-          ],
         );
       },
     );

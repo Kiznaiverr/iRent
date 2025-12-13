@@ -14,6 +14,10 @@ class StatusWarnings extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    debugPrint(
+      'StatusWarnings - phoneVerified: ${user.phoneVerified}, isActive: ${user.isActive}, penalty: ${user.penalty}',
+    );
+
     return Column(
       children: [
         // Inactive Account Warning
@@ -108,7 +112,7 @@ class StatusWarnings extends ConsumerWidget {
         ],
 
         // Phone Verification Warning
-        if (user.phoneVerified != null && !user.phoneVerified!)
+        if (user.phoneVerified != null && !user.phoneVerified!) ...[
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -147,6 +151,7 @@ class StatusWarnings extends ConsumerWidget {
               ],
             ),
           ),
+        ],
       ],
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'screens/auth/login_screen.dart';
+import 'screens/auth/verification_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/updater/update_screen.dart';
 import 'providers/auth_provider.dart';
@@ -29,6 +30,7 @@ class MyApp extends ConsumerWidget {
       routes: {
         '/': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
+        '/verify-phone': (context) => const VerificationScreen(),
         '/home': (context) {
           final args =
               ModalRoute.of(context)?.settings.arguments

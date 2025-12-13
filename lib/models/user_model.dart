@@ -37,7 +37,7 @@ class UserModel {
       status: json['status'] ?? 'active',
       penalty: double.tryParse(json['penalty']?.toString() ?? '0') ?? 0.0,
       profile: json['profile'],
-      phoneVerified: json['phone_verified'],
+      phoneVerified: json['isverified'],
     );
   }
 
