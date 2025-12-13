@@ -14,31 +14,73 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  String? _loginError;
+  AnimationController? _shakeController;
+  Animation<double>? _shakeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _shakeAnimation =
+        Tween<double>(begin: 0, end: 10)
+            .chain(CurveTween(curve: Curves.elasticIn))
+            .animate(_shakeController!)
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              _shakeController?.reverse();
+            }
+          });
+
+    // Clear error when user starts typing
+    _usernameController.addListener(_clearError);
+    _passwordController.addListener(_clearError);
+  }
+
+  void _clearError() {
+    if (_loginError != null) {
+      setState(() {
+        _loginError = null;
+      });
+    }
+  }
 
   @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
+    _shakeController?.dispose();
     super.dispose();
   }
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final success = await ref
+    final error = await ref
         .read(authProvider.notifier)
         .login(
           username: _usernameController.text.trim(),
           password: _passwordController.text,
         );
 
-    if (success && mounted) {
+    if (error == null && mounted) {
+      // Success
       Navigator.of(context).pushReplacementNamed('/home');
+    } else if (error != null && mounted) {
+      // Login failed - show error with shake animation
+      setState(() {
+        _loginError = 'Username atau password salah';
+      });
+      _shakeController?.forward(from: 0);
     }
   }
 
@@ -147,44 +189,82 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           const SizedBox(height: 32),
 
-                          // Username Field
-                          CustomTextField(
-                            controller: _usernameController,
-                            labelText: 'Username',
-                            prefixIcon: Icons.person_outline_rounded,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Username tidak boleh kosong';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 20),
-
-                          // Password Field
-                          CustomTextField(
-                            controller: _passwordController,
-                            obscureText: _obscurePassword,
-                            labelText: 'Password',
-                            prefixIcon: Icons.lock_outline_rounded,
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                color: Colors.grey[600],
+                          // Error Message
+                          if (_loginError != null) ...[
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.red[50],
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.red[200]!),
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
+                              child: Text(
+                                _loginError!,
+                                style: TextStyle(
+                                  color: Colors.red[700],
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Password tidak boleh kosong';
-                              }
-                              return null;
+                            const SizedBox(height: 16),
+                          ],
+
+                          // Form Fields with Shake Animation
+                          AnimatedBuilder(
+                            animation:
+                                _shakeAnimation ?? AlwaysStoppedAnimation(0),
+                            builder: (context, child) {
+                              final shakeValue = _shakeAnimation?.value ?? 0;
+                              return Transform.translate(
+                                offset: Offset(shakeValue, 0),
+                                child: Column(
+                                  children: [
+                                    // Username Field
+                                    CustomTextField(
+                                      controller: _usernameController,
+                                      labelText: 'Username',
+                                      prefixIcon: Icons.person_outline_rounded,
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Username tidak boleh kosong';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    const SizedBox(height: 20),
+
+                                    // Password Field
+                                    CustomTextField(
+                                      controller: _passwordController,
+                                      obscureText: _obscurePassword,
+                                      labelText: 'Password',
+                                      prefixIcon: Icons.lock_outline_rounded,
+                                      suffixIcon: IconButton(
+                                        icon: Icon(
+                                          _obscurePassword
+                                              ? Icons.visibility_off_outlined
+                                              : Icons.visibility_outlined,
+                                          color: Colors.grey[600],
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            _obscurePassword =
+                                                !_obscurePassword;
+                                          });
+                                        },
+                                      ),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Password tidak boleh kosong';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
                             },
                           ),
                           const SizedBox(height: 12),

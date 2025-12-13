@@ -107,7 +107,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   // Login
-  Future<bool> login({
+  Future<String?> login({
     required String username,
     required String password,
   }) async {
@@ -135,15 +135,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
         );
 
         Fluttertoast.showToast(msg: 'Login berhasil');
-        return true;
+        return null; // null means success
       }
       state = state.copyWith(isLoading: false);
-      return false;
+      return 'Login gagal'; // Generic error message
     } catch (e) {
       final error = _apiService.handleError(e);
       state = state.copyWith(isLoading: false, error: error);
-      Fluttertoast.showToast(msg: error);
-      return false;
+      // Don't show toast here, let the UI handle it
+      return error;
     }
   }
 
