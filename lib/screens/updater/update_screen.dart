@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../../services/update_service.dart';
 import '../../theme/colors.dart';
 
@@ -33,43 +32,6 @@ class _UpdateScreenState extends ConsumerState<UpdateScreen> {
     // FlutterDownloader already initialized in main.dart
   }
 
-  Future<void> _requestStoragePermission() async {
-    if (await Permission.storage.request().isGranted) {
-      return;
-    }
-
-    // Jika ditolak, coba request lagi atau show dialog
-    final status = await Permission.storage.request();
-    if (!status.isGranted) {
-      _showPermissionDialog();
-    }
-  }
-
-  void _showPermissionDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Storage Permission Required'),
-        content: const Text(
-          'Storage permission is needed to download the update. Please grant permission in settings.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              openAppSettings();
-            },
-            child: const Text('Open Settings'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @pragma('vm:entry-point')
   static void downloadCallback(String id, int status, int progress) {
     // This will be called by the downloader isolate
@@ -77,16 +39,6 @@ class _UpdateScreenState extends ConsumerState<UpdateScreen> {
 
   Future<void> _startDownload() async {
     debugPrint('Starting download process...');
-    // Request storage permission first
-    await _requestStoragePermission();
-
-    // Check permission again
-    if (!await Permission.storage.isGranted) {
-      debugPrint('Storage permission denied');
-      return; // Permission not granted, dialog already shown
-    }
-
-    debugPrint('Storage permission granted');
     setState(() {
       _isDownloading = true;
       _downloadProgress = 0.0;
