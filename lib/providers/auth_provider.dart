@@ -87,10 +87,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
         },
       );
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final responseData = response.data;
+        // Consider registration successful if status is 200/201 (data is saved)
         state = state.copyWith(isLoading: false);
         Fluttertoast.showToast(
-          msg: response.data['message'] ?? 'Registrasi berhasil',
+          msg: responseData?['message'] ?? 'Registrasi berhasil',
         );
         return true;
       }
