@@ -54,9 +54,9 @@ class _UpdateScreenState extends ConsumerState<UpdateScreen> {
         return;
       }
 
-      final directory = await getExternalStorageDirectory();
+      final directory = await getDownloadsDirectory();
       if (directory == null) {
-        debugPrint('Could not get external storage directory');
+        debugPrint('Could not get downloads directory');
         _showError('Failed to get storage directory');
         return;
       }
@@ -142,18 +142,58 @@ class _UpdateScreenState extends ConsumerState<UpdateScreen> {
     }
 
     debugPrint('Starting APK installation: $_downloadPath');
+
     try {
+      // For Android 9 and below, try multiple installation methods
       final result = await OpenFile.open(_downloadPath!);
       debugPrint('Install result: ${result.type} - ${result.message}');
+
       if (result.type != ResultType.done) {
-        _showError('Failed to install APK. Please check your device settings.');
+        // If OpenFile fails, show manual installation instructions
+        _showManualInstallDialog();
       } else {
         debugPrint('APK installation initiated successfully');
       }
     } catch (e) {
       debugPrint('Installation failed: $e');
-      _showError('Installation failed: $e');
+      _showManualInstallDialog();
     }
+  }
+
+  void _showManualInstallDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Manual Installation Required'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Automatic installation failed. Please install manually:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            const Text('1. Open File Manager'),
+            const Text('2. Go to Downloads folder'),
+            Text('3. Find file: iRent-v${widget.latestVersion}.apk'),
+            const Text('4. Tap to install'),
+            const SizedBox(height: 12),
+            const Text(
+              'If you can\'t find the file, check your device\'s download folder.',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showError(String message) {
